@@ -16,23 +16,68 @@ process.setMaxListeners(100);
 sourceMaps.install();
 
 
-describe('when we have an instance', function () {
+it('connects', (done) => {
+  let world = {
+    state: {}
+  }
 
-  it('bla bha', (done) => {
+  let net = {
+    connect: sinon.spy(() =>
+      world.state.mockBoilerBayConnection = _()),
+    createServer: (callback) => {
+      world.state.mockClientConnection = _()
+      callback(world.state.mockClientConnection)
+      return world.state.mockServer = {
+        listen: sinon.stub()
+      }
+    },
+  }
+  let guid = () => 'random123'
+  constructor(net, guid, '192.168.0.1:1234', 4567)
+
+  assert(world.state.mockServer.listen.calledWith(4567))
+  assert(net.connect.calledWith(1234, '192.168.0.1'))
+  _(world.state.mockBoilerBayConnection).each((x) => {
+    assert.equal(x, 'send myTopic random123 {"hello":123}')
+    done()
+  })
+  _([
+    JSON.stringify({
+      event: {
+        topic: "myTopic",
+        body: {
+          hello: 123
+        }
+      }
+    })
+  ])
+  .pipe(
+    world.state.mockClientConnection)
+
+})
+
+xdescribe('when we have an instance', function () {
+
+
+
+  xit('bla bha', (done) => {
 
     let netConnection = _()
     netConnection.on = sinon.stub()
 
     let guid = () => 'unique123'
 
-
     let net = {
       connect: (port, host) => {
         assert.equal(port, 4444)
         assert.equal(host, '192.168.99.100')
         return netConnection;
+      },
+      createServer: (callback) => {
+
       }
     }
+
     let connection = constructor(net, guid, '192.168.99.100:4444')
     _([{
       body: {
