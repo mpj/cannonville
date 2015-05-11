@@ -3,6 +3,11 @@ var babel = require('gulp-babel');
 var watch = require('gulp-watch');
 var mocha = require('gulp-mocha');
 var sourcemaps = require('gulp-sourcemaps');
+var shell = require('gulp-shell')
+
+gulp.task('tape',['compile'], shell.task([
+  'tape build/client/test.js | faucet',
+]));
 
 gulp.task('compile', function() {
   return gulp
@@ -26,4 +31,13 @@ gulp.task('watch', function () {
     gulp.start('mocha');
   });
   gulp.start('mocha');
+});
+
+
+
+gulp.task('watch-tape', function () {
+  watch(['src/**/*.js'], function () {
+    gulp.start('tape');
+  });
+  gulp.start('tape');
 });

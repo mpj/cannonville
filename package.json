@@ -16,13 +16,15 @@
     "gulp-babel": "~5.1.0",
     "sinon": "~1.14.1",
     "source-map-support": "~0.2.10",
-    "gulp-sourcemaps": "~1.5.1"
+    "gulp-sourcemaps": "~1.5.1",
+    "tape": "~4.0.0",
+    "gulp-shell": "~0.4.1",
+    "faucet": "0.0.1"
   },
   "_comment": "Awaiting highland 2.5.0 and higher",
   "dependencies": {
     "highland": "caolan/highland#48bccf9c90884f2d244fb9d7f4a619e48a5f91f4",
     "mout": "~0.11.0",
-    "mongodb": "~2.0.27",
     "uuid": "~2.0.1"
   }
 }

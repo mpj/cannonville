@@ -1,19 +1,12 @@
-var net = require('net');
+import client from './index'
 
-var client = net.connect(1234, 'localhost');
-client.setEncoding('utf8');
+let conn = client('localhost:1234')
 
-setInterval(function() {
-  client.write(JSON.stringify({
-    event: {
-      topic: 'mytopic',
-      body: {
-        hello: 123
-      }
+setInterval(() =>
+  conn.write({
+    topic: 'mytopic',
+    body: {
+      hello: Math.floor(Math.random()*10000)
     }
-  }));
-}, 250)
-
-client.on('data', function(data) {
-  console.log('data was', data)
-})
+  })
+,250)
