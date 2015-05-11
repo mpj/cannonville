@@ -1,9 +1,9 @@
 import _ from 'highland'
+import logger from '../stream-utils/logger'
 
 let constructor = (net, guid, boilerBayPath, serverPort) => {
   let boilerBayHost = boilerBayPath.split(':')[0]
   let boilerBayPort = parseInt(boilerBayPath.split(':')[1], 10)
-
 
   let server = net.createServer((cannonvilleConnection) => {
     let boilerBayConnection = net.connect(boilerBayPort, boilerBayHost)
@@ -17,27 +17,10 @@ let constructor = (net, guid, boilerBayPath, serverPort) => {
           '\n'
       })
       .pipe(boilerBayConnection)
+
+    _(boilerBayConnection).each(logger('Boiler Bay Data'))
   })
   server.listen(serverPort)
 }
 
-
 export default constructor
-
-/*
-
-  let connection = {
-    topic: (topicName) => {
-      let inp = _()
-      inp.map((event) => ({
-        body: event.body,
-        saga: guid(),
-      }))
-      .map((event) =>
-        'send ' +
-        topicName + ' ' +
-        event.saga + ' ' +
-        JSON.stringify(event.body)
-      ).pipe(netConnection)
-      return inp
-    }*/
