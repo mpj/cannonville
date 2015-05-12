@@ -17,8 +17,6 @@ let constructor = (net, guid, boilerBayPath, serverPort) => {
           '\n'
       })
       .pipe(boilerBayConnection)
-
-    _(boilerBayConnection).each(logger('Boiler Bay Data'))
   })
   server.listen(serverPort)
 }

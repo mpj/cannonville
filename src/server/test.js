@@ -1,14 +1,14 @@
 import _ from 'highland'
-import sourceMaps from 'source-map-support'
 import constructor from './constructor'
 import sinon from 'sinon'
 import assert from 'assert'
+import test from 'tape'
 
 process.setMaxListeners(100);
-sourceMaps.install();
 
+test('connects to bb', (t) => {
+  t.plan(1)
 
-it('connects', (done) => {
   let world = {
     state: {}
   }
@@ -31,8 +31,7 @@ it('connects', (done) => {
   assert(world.state.mockServer.listen.calledWith(4567))
   assert(net.connect.calledWith(1234, '192.168.0.1'))
   _(world.state.mockBoilerBaySocket).each((x) => {
-    assert.equal(x, 'send myTopic a389d8de87c543cfbf938b155b5fe263 {"hello":123}\n')
-    done()
+    t.equal(x, 'send myTopic a389d8de87c543cfbf938b155b5fe263 {"hello":123}\n')
   })
   _([
     JSON.stringify({

@@ -10,16 +10,13 @@
   "license": "ISC",
   "devDependencies": {
     "gulp": "~3.8.11",
-    "gulp-mocha": "~2.0.1",
     "gulp-watch": "~4.2.4",
     "babel": "~5.0.12",
     "gulp-babel": "~5.1.0",
     "sinon": "~1.14.1",
-    "source-map-support": "~0.2.10",
     "gulp-sourcemaps": "~1.5.1",
     "tape": "~4.0.0",
-    "gulp-shell": "~0.4.1",
-    "faucet": "0.0.1"
+    "tap-spec": "~3.0.0"
   },
   "_comment": "Awaiting highland 2.5.0 and higher",
   "dependencies": {
