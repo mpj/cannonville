@@ -30,19 +30,21 @@ test('connects to bb', (t) => {
 
   assert(world.state.mockServer.listen.calledWith(4567))
   assert(net.connect.calledWith(1234, '192.168.0.1'))
-  _(world.state.mockBoilerBaySocket).each((x) => {
-    t.equal(x, 'send myTopic a389d8de87c543cfbf938b155b5fe263 {"hello":123}\n')
-  })
-  _([
-    JSON.stringify({
-      event: {
-        topic: "myTopic",
-        body: {
-          hello: 123
-        }
+  _(world.state.mockBoilerBaySocket).each((x) =>
+    t.equal(x, 'send myTopic a389d8de87c543cfbf938b155b5fe263 {"hello":123}\n'))
+
+  world.state.mockClientSocket.write(JSON.stringify({
+    event: {
+      topic: "myTopic",
+      body: {
+        hello: 123
       }
-    })
-  ])
-  .pipe(world.state.mockClientSocket)
+    }
+  }))
 
 })
+
+import deepMatches
+let checkReceived = (strm) => {
+  strm.each((x) => deepMatches)
+}
