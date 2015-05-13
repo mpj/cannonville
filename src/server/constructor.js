@@ -17,6 +17,17 @@ let constructor = (net, guid, boilerBayPath, serverPort) => {
           '\n'
       })
       .pipe(boilerBayConnection)
+    _(boilerBayConnection)
+      .fork()
+      .map((body) => ({
+        error: {
+          code: body.split(' ')[1],
+          message: body.split(' ')[2]
+        }
+      }))
+      .map(JSON.stringify)
+
+      .each((x) => cannonvilleConnection.write(x) )
   })
   server.listen(serverPort)
 }

@@ -4,12 +4,12 @@ var watch = require('gulp-watch')
 var sourcemaps = require('gulp-sourcemaps')
 var spawn = require('child_process').spawn
 var _ = require('highland')
-var tapSpec = require('tap-spec')
+//var tapSpec = require('tap-spec')
 
 gulp.task('tape', ['compile'], function() {
   var emitter = spawn('./node_modules/tape/bin/tape', ['build/**/test.js'])
   emitter.stderr.pipe(process.stderr)
-  emitter.stdout.pipe(tapSpec()).pipe(process.stdout)
+  emitter.stdout.pipe(process.stdout)
 });
 
 gulp.task('compile', function() {

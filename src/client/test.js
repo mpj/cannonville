@@ -1,11 +1,13 @@
 import test from 'tape'
 import constructor from './constructor'
 import _ from 'highland'
+import duplexStub from '../stream-utils/duplex-stub'
+import logger from '../stream-utils/logger'
 
 test('opens connection an writes to it', (t) => {
   t.plan(1);
 
-  let connection = _();
+  let connection = duplexStub()
   let net = {
     connect: () => connection
   }
@@ -18,7 +20,7 @@ test('opens connection an writes to it', (t) => {
     }
   }]).pipe(api)
 
-  connection.each((x) => t.equal(x, JSON.stringify({
+  t.ok(connection.received(JSON.stringify({
     event: {
       topic: 'mytopic',
       body: {
@@ -26,4 +28,32 @@ test('opens connection an writes to it', (t) => {
       }
     }
   })))
+})
+
+
+test('coerces errors to node errors', (t) => {
+  t.plan(2)
+
+  let connection = _();
+  let net = {
+    connect: () => connection
+  }
+
+  let api = constructor(net, 'localhost:1234')
+
+  _(api)
+    .errors((e) => {
+      t.equal(e.code, 'some-error')
+      t.equal(e.message, 'Everything broke!')
+    })
+    .each(logger('hmm'))
+
+  connection.write(JSON.stringify({
+    error: {
+      code: 'some-error',
+      message: 'Everything broke!'
+    }
+  }))
+
+
 })

@@ -20,8 +20,9 @@
   },
   "_comment": "Awaiting highland 2.5.0 and higher",
   "dependencies": {
-    "highland": "caolan/highland#48bccf9c90884f2d244fb9d7f4a619e48a5f91f4",
+    "highland": "~2.5.0",
     "mout": "~0.11.0",
-    "uuid": "~2.0.1"
+    "uuid": "~2.0.1",
+    "duplexer": "~0.1.1"
   }
 }
