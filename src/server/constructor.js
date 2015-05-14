@@ -36,16 +36,21 @@ let constructor = (net, guid, boilerBayPath, serverPort) => {
           return {
             message: JSON.parse(body.match(/msg\s(.+)/)[1])
           }
-        else
-        return {
-          error: {
-            code: body.split(' ')[1],
-            message: body.split(' ')[2]
+        else if (body.match(/consume\-started/))
+          return {
+            consumeStarted: true
           }
-        }
+        else
+          return {
+            error: {
+              code: body.split(' ')[1],
+              message: body.split(' ')[2]
+            }
+          }
       })
+
       .map(JSON.stringify)
-      .each((x) => cannonvilleConnection.write(x) )
+      .pipe(cannonvilleConnection)
   })
   server.listen(serverPort)
 }

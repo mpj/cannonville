@@ -231,4 +231,40 @@ export default (tape) => {
 
   })
 
+  tape('consume-started', (t) => {
+    t.plan(1)
+
+    let world = {
+      state: {}
+    }
+    world.state.guidGenerated = 'abc1234'
+    world.state.mockBoilerBaySocket = duplexStub()
+    world.state.mockClientSocket = duplexStub()
+    let net = {
+      connect: sinon.spy(() =>
+        world.state.mockBoilerBaySocket),
+      createServer: (callback) => {
+
+        callback(world.state.mockClientSocket)
+        return world.state.mockServer = {
+          listen: sinon.stub()
+        }
+      },
+    }
+    let guid = () => world.state.guidGenerated
+
+    constructor(net, guid, '192.168.0.1:1234', 4567)
+
+    world.state.mockBoilerBaySocket.queue(
+      'consume-started\n'
+    )
+
+    setTimeout(() => {
+      t.ok(world.state.mockClientSocket.received(
+        '{"consumeStarted":true}'
+      ))
+    },10)
+
+  })
+
 }
