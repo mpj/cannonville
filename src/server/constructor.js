@@ -29,14 +29,20 @@ let constructor = (net, guid, boilerBayPath, serverPort) => {
       .pipe(boilerBayConnection)
     _(boilerBayConnection)
       .fork()
-      .map((body) => ({
-        error: {
-          code: body.split(' ')[1],
-          message: body.split(' ')[2]
+      .map((body) => {
+        if (body.match(/msg/))
+          return {
+            message: JSON.parse(body.match(/msg\s(.+)/)[1])
+          }
+        else
+        return {
+          error: {
+            code: body.split(' ')[1],
+            message: body.split(' ')[2]
+          }
         }
-      }))
+      })
       .map(JSON.stringify)
-
       .each((x) => cannonvilleConnection.write(x) )
   })
   server.listen(serverPort)
