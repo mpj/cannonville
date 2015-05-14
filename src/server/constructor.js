@@ -24,6 +24,8 @@ let constructor = (net, guid, boilerBayPath, serverPort) => {
             '\n'
         } else if (command.next) {
           return 'next\n'
+        } else if (command.commit) {
+          return 'commit\n'
         }
       })
       .pipe(boilerBayConnection)
