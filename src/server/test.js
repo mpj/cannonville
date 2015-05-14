@@ -86,6 +86,44 @@ export default (tape) => {
       })), 'Sent error along to client')
     },10)
 
+  })
+
+  tape('Converts Cannonville replay command to BoilerBay consume', (t) => {
+    t.plan(1)
+
+    let world = {
+      state: {}
+    }
+    world.state.guidGenerated = 'abc1234'
+    world.state.mockBoilerBaySocket = duplexStub()
+    world.state.mockClientSocket = duplexStub()
+    let net = {
+      connect: sinon.spy(() =>
+        world.state.mockBoilerBaySocket),
+      createServer: (callback) => {
+
+        callback(world.state.mockClientSocket)
+        return world.state.mockServer = {
+          listen: sinon.stub()
+        }
+      },
+    }
+    let guid = () => world.state.guidGenerated
+
+    constructor(net, guid, '192.168.0.1:1234', 4567)
+
+    world.state.mockClientSocket.queue(JSON.stringify({
+      consume: {
+        offsetReset: 'smallest',
+        topic: 'my_fine_topic',
+        group: world.state.guidGenerated
+      },
+    }))
+
+    setTimeout(function() {
+      t.ok(world.state.mockBoilerBaySocket.received(
+        'consume my_fine_topic abc1234 smallest\n'))
+    },10)
 
   })
 }

@@ -10,11 +10,19 @@ let constructor = (net, guid, boilerBayPath, serverPort) => {
     _(cannonvilleConnection)
       .map(JSON.parse)
       .map((command) => {
-        return 'send ' +
-          command.event.topic + ' ' +
-          (guid().replace(/-/g,'')) + ' ' +
-          JSON.stringify(command.event.body) +
-          '\n'
+        if (command.event) {
+          return 'send ' +
+            command.event.topic + ' ' +
+            (guid().replace(/-/g,'')) + ' ' +
+            JSON.stringify(command.event.body) +
+            '\n'
+        } else if(command.consume) {
+          return 'consume ' +
+            command.consume.topic + ' ' +
+            command.consume.group + ' ' +
+            command.consume.offsetReset +
+            '\n'
+        }
       })
       .pipe(boilerBayConnection)
     _(boilerBayConnection)
