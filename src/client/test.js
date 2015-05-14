@@ -53,5 +53,55 @@ export default (tape) => {
         message: 'Everything broke!'
       }
     }))
+
+  })
+
+
+  tape('sends consume when replaying', (t) => {
+    t.plan(2)
+    t.timeoutAfter(100)
+
+    let connection = duplexStub();
+    let net = {
+      connect: () => connection
+    }
+
+    let api = constructor(net, 'localhost:1234')
+
+    connection.onFirst(JSON.stringify({
+      consume: {
+        topic: 'the_topic',
+        offsetReset: 'smallest'
+      }
+    }), JSON.stringify({
+      consumeStarted: true
+    }))
+
+    connection.onFirst(JSON.stringify({
+      next: true
+    }), JSON.stringify({
+      message: {
+        hello: 123
+      }
+    }))
+
+    connection.onFirst(JSON.stringify({
+      commit: true
+    }), JSON.stringify({
+      commitOK: true
+    }))
+    setTimeout(() => {
+      t.deepEqual(connection.lastWrite, JSON.stringify({
+        next: true
+      }), 'sent a final next')
+    },10)
+
+    api.replay('the_topic', (event, ack) => {
+      t.deepEqual(event, {
+        hello: 123
+      }, 'callback got event')
+      ack()
+    })
+
   })
 }

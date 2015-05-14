@@ -8,6 +8,8 @@ let constructor = (net, path) => {
   let connection = net.connect(port, host);
   connection.on('connect', logger('Cannonville client connected'))
 
+  let currentConsumerCallback;
+
   let write = _()
   let read = _()
   let api = duplex(write, read)
@@ -17,13 +19,43 @@ let constructor = (net, path) => {
     }))
     .pipe(connection)
 
+  let writeNext = () => connection.write(JSON.stringify({
+    next: true
+  }))
+
   _(connection)
+    .fork()
+    .doto(logger('out from connection'))
     .map(JSON.parse)
     .each(function(resp) {
-      var error = new Error(resp.error.message)
-      error.code = resp.error.code
-      read.emit('error', error);
+      if (resp.consumeStarted || resp.commitOK) {
+        writeNext()
+      } else if(resp.message) {
+        let ack = () => {
+          connection.write(JSON.stringify({
+            commit: true
+          }))
+        }
+        currentConsumerCallback(resp.message, ack)
+      }
+      else {
+        var error = new Error(resp.error.message)
+        error.code = resp.error.code
+        read.emit('error', error);
+      }
+
     })
+
+  api.replay = (topic, callback) => {
+    currentConsumerCallback = callback
+    connection.write(JSON.stringify({
+      consume: {
+        topic,
+        offsetReset: 'smallest'
+      }
+    }))
+
+  }
 
   return api
 }

@@ -40,6 +40,10 @@ let constructor = (net, guid, boilerBayPath, serverPort) => {
           return {
             consumeStarted: true
           }
+        else if (body.match(/commit\-ok/))
+          return {
+            commitOK: true
+          }
         else
           return {
             error: {
