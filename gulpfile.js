@@ -7,6 +7,8 @@ var browserify = require('browserify');
 var source = require('vinyl-source-stream');
 var livereload = require('gulp-livereload');
 var gutil = require('gulp-util');
+var open = require('gulp-open');
+
 
 gulp.task('tape', ['compile'], function() {
   var emitter = spawn('./node_modules/tape/bin/tape', ['build/**/test.js'])
@@ -37,5 +39,7 @@ gulp.task('watch', function () {
     gulp.start('browser-test')
   });
   gulp.start('browser-test')
+  gulp.src('./test-runner.html').pipe(open());
+
 
 })
