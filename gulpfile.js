@@ -8,6 +8,7 @@ var source = require('vinyl-source-stream');
 var livereload = require('gulp-livereload');
 var gutil = require('gulp-util');
 var open = require('gulp-open');
+var clean = require('gulp-clean');
 
 
 gulp.task('tape', ['compile'], function() {
@@ -16,8 +17,13 @@ gulp.task('tape', ['compile'], function() {
   emitter.stdout.pipe(process.stdout)
 });
 
-gulp.task('browser-test', function() {
-  return browserify({
+gulp.task('clean', function() {
+  return gulp.src('./build', {read: false})
+    .pipe(clean());
+})
+
+gulp.task('browser-test', ['clean'], function() {
+  browserify({
     entries: 'src/test-runner.js',
     debug: true // make sourcemaps work
   })
