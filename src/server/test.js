@@ -115,8 +115,8 @@ export default (tape) => {
     world.state.mockClientSocket.queue(JSON.stringify({
       consume: {
         offsetReset: 'smallest',
-        topic: 'my_fine_topic',
-        group: world.state.guidGenerated
+        topic: 'my_fine_topic'
+        // leaving group undefined
       },
     }))
 
@@ -230,4 +230,5 @@ export default (tape) => {
     },10)
 
   })
+
 }
