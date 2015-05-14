@@ -22,6 +22,8 @@ let constructor = (net, guid, boilerBayPath, serverPort) => {
             command.consume.group + ' ' +
             command.consume.offsetReset +
             '\n'
+        } else if (command.next) {
+          return 'next\n'
         }
       })
       .pipe(boilerBayConnection)
