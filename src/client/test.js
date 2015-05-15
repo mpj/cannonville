@@ -27,7 +27,7 @@ export default (tape) => {
           hello: 123
         }
       }
-    })))
+    })+'\n'))
   })
 
   tape('coerces errors to node errors', (t) => {

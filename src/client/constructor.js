@@ -16,7 +16,7 @@ let constructor = (net, path) => {
   write
     .map((cmd) => JSON.stringify({
       event: cmd
-    }))
+    })+'\n')
     .pipe(connection)
 
   let writeNext = () => connection.write(JSON.stringify({
