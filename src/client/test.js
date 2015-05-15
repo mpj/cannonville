@@ -73,27 +73,27 @@ export default (tape) => {
         topic: 'the_topic',
         offsetReset: 'smallest'
       }
-    }), JSON.stringify({
+    })+'\n', JSON.stringify({
       consumeStarted: true
-    }))
+    })+'\n')
 
     connection.onFirst(JSON.stringify({
       next: true
-    }), JSON.stringify({
+    })+'\n', JSON.stringify({
       message: {
         hello: 123
       }
-    }))
+    })+'\n')
 
     connection.onFirst(JSON.stringify({
       commit: true
-    }), JSON.stringify({
+    })+'\n', JSON.stringify({
       commitOK: true
-    }))
+    })+'\n')
     setTimeout(() => {
       t.deepEqual(connection.lastWrite, JSON.stringify({
         next: true
-      }), 'sent a final next')
+      })+'\n', 'sent a final next')
     },10)
 
     api.replay('the_topic', (event, ack) => {

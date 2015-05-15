@@ -21,7 +21,7 @@ let constructor = (net, path) => {
 
   let writeNext = () => connection.write(JSON.stringify({
     next: true
-  }))
+  })+'\n')
 
   _(connection)
     .fork()
@@ -34,7 +34,7 @@ let constructor = (net, path) => {
         let ack = () => {
           connection.write(JSON.stringify({
             commit: true
-          }))
+          })+'\n')
         }
         currentConsumerCallback(resp.message, ack)
       }
@@ -53,7 +53,7 @@ let constructor = (net, path) => {
         topic,
         offsetReset: 'smallest'
       }
-    }))
+    })+'\n')
 
   }
 
