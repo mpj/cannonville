@@ -8,6 +8,7 @@ let constructor = (net, guid, boilerBayPath, serverPort) => {
   let server = net.createServer((cannonvilleConnection) => {
     let boilerBayConnection = net.connect(boilerBayPort, boilerBayHost)
     _(cannonvilleConnection)
+      .split()
       .map(JSON.parse)
       .map((command) => {
         if (command.event) {
