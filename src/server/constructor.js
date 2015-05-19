@@ -47,7 +47,7 @@ let constructor = (net, guid, boilerBayPath, serverPort) => {
           return {
             commitOK: true
           }
-        } else if (body.match(/error/)){
+        } else if (body.match(/^error/)){
           var parts = body.match(/error\s(\S+)\s(.+)/)
           return {
             error: {
@@ -57,7 +57,7 @@ let constructor = (net, guid, boilerBayPath, serverPort) => {
           }
         }
       })
-
+      .compact()
       .map(JSON.stringify)
       .pipe(cannonvilleConnection)
   })

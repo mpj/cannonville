@@ -227,7 +227,7 @@ export default (tape) => {
   })
 
   tape('msg', (t) => {
-    t.plan(1)
+    t.plan(2)
 
     let world = {
       state: {}
@@ -268,6 +268,8 @@ export default (tape) => {
       t.ok(world.state.mockClientSocket.received(
         '{"message":{"hello":123}}'
       ))
+
+      t.notOk(world.state.mockClientSocket.received(undefined))
     },10)
 
   })
