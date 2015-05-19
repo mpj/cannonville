@@ -1,4 +1,5 @@
 var gulp = require('gulp')
+var babel = require('gulp-babel')
 var babelify = require('babelify');
 var watch = require('gulp-watch')
 var sourcemaps = require('gulp-sourcemaps')
@@ -9,13 +10,17 @@ var livereload = require('gulp-livereload');
 var gutil = require('gulp-util');
 var open = require('gulp-open');
 var clean = require('gulp-clean');
+var run = require('gulp-run');
 
-
-gulp.task('tape', ['compile'], function() {
-  var emitter = spawn('./node_modules/tape/bin/tape', ['build/**/test.js'])
-  emitter.stderr.pipe(process.stderr)
-  emitter.stdout.pipe(process.stdout)
-});
+gulp.task('compile', ['clean'], function() {
+  return gulp
+    .src('src/**/*.js')
+    .pipe(sourcemaps.init())
+    .pipe(babel({ stage: 0 }))
+    .pipe(sourcemaps.write('.'))
+    .on("error", function (err) { console.log("Error : " + err.message); this.emit('end') })
+    .pipe(gulp.dest('build'))
+})
 
 gulp.task('clean', function() {
   return gulp.src('./build', {read: false})
@@ -39,6 +44,12 @@ gulp.task('browser-test', ['clean'], function() {
 })
 
 
+gulp.task('server', ['compile'], function() {
+  return run('node build/server/run.js')
+    .exec()
+    .pipe(gulp.dest('logs'))
+})
+
 gulp.task('watch', function () {
   livereload.listen();
   watch(['src/**/*.js'], function () {
@@ -46,6 +57,4 @@ gulp.task('watch', function () {
   });
   gulp.start('browser-test')
   gulp.src('./test-runner.html').pipe(open());
-
-
 })
