@@ -250,13 +250,14 @@ export default (tape) => {
 
     constructor(net, guid, '192.168.0.1:1234', 4567)
 
-    world.state.mockBoilerBaySocket.queue(
-      'msg ' +
-      JSON.stringify({
-        hello: 123
-      }) +
-      '\n'
-    )
+    world.state.mockBoilerBaySocket.queue({
+      toString: () =>
+        'msg ' +
+        JSON.stringify({
+          hello: 123
+        }) +
+        '\n'
+    })
 
     setTimeout(() => {
       t.ok(world.state.mockClientSocket.received(

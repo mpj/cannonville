@@ -32,7 +32,8 @@ let constructor = (net, guid, boilerBayPath, serverPort) => {
       .pipe(boilerBayConnection)
     _(boilerBayConnection)
       .fork()
-      .map((body) => {
+      .map((buffer) => {
+        let body = buffer.toString()
         if (body.match(/msg/))
           return {
             message: JSON.parse(body.match(/msg\s(.+)/)[1])

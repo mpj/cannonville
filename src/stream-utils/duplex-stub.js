@@ -46,7 +46,7 @@ DuplexStub.prototype.onFirst = function (inputPattern, outputValue) {
 }
 
 DuplexStub.prototype.received = function(pattern) {
-  return some(this._receivedValues, (x) => deepMatches(x, pattern))
+  return this._receivedValues.filter((x) => deepMatches(x, pattern)).length
 }
 
 export default () => new DuplexStub()
