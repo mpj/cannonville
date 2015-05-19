@@ -76,12 +76,12 @@ export default (tape) => {
 
     constructor(net, guid, '192.168.0.1:1234', 4567)
 
-    world.state.mockBoilerBaySocket.queue('error some-code some-message')
+    world.state.mockBoilerBaySocket.queue('error some-code oh my god')
     setTimeout(function() {
       t.ok(world.state.mockClientSocket.received(JSON.stringify({
         error: {
           code: 'some-code',
-          message: 'some-message'
+          message: 'oh my god'
         }
       })), 'Sent error along to client')
     },10)

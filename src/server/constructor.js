@@ -35,25 +35,27 @@ let constructor = (net, guid, boilerBayPath, serverPort) => {
       .fork()
       .map((buffer) => {
         let body = buffer.toString()
-        if (body.match(/msg/))
+        if (body.match(/msg/)) {
           return {
             message: JSON.parse(body.match(/msg\s(.+)/)[1])
           }
-        else if (body.match(/consume\-started/))
+        } else if (body.match(/consume\-started/)) {
           return {
             consumeStarted: true
           }
-        else if (body.match(/commit\-ok/))
+        } else if (body.match(/commit\-ok/)) {
           return {
             commitOK: true
           }
-        else
+        } else {
+          var parts = body.match(/error\s(\S+)\s(.+)/)
           return {
             error: {
-              code: body.split(' ')[1],
-              message: body.split(' ')[2]
+              code: parts[1],
+              message: parts[2]
             }
           }
+        }
       })
 
       .map(JSON.stringify)
