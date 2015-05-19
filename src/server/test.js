@@ -118,7 +118,7 @@ export default (tape) => {
         topic: 'my_fine_topic'
         // leaving group undefined
       },
-    })+'\n')
+    })+'\n\n')
 
     setTimeout(function() {
       t.ok(world.state.mockBoilerBaySocket.received(
