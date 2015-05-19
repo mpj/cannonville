@@ -47,7 +47,13 @@ gulp.task('browser-test', ['clean'], function() {
 gulp.task('server', ['compile'], function() {
   return run('node build/server/run.js')
     .exec()
-    .pipe(gulp.dest('output'))
+    .pipe(gulp.dest('output/server-log'))
+})
+
+gulp.task('client', ['compile'], function() {
+  return run('node build/client/run.js')
+    .exec()
+    .pipe(gulp.dest('output/client-log'))
 })
 
 gulp.task('watch', function () {
