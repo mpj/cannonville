@@ -252,6 +252,11 @@ export default (tape) => {
 
     world.state.mockBoilerBaySocket.queue({
       toString: () =>
+        'ready\n'
+    })
+
+    world.state.mockBoilerBaySocket.queue({
+      toString: () =>
         'msg ' +
         JSON.stringify({
           hello: 123

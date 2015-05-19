@@ -47,7 +47,7 @@ let constructor = (net, guid, boilerBayPath, serverPort) => {
           return {
             commitOK: true
           }
-        } else {
+        } else if (body.match(/error/)){
           var parts = body.match(/error\s(\S+)\s(.+)/)
           return {
             error: {
