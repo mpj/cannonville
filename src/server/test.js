@@ -171,16 +171,16 @@ export default (tape) => {
       },
       simulate: {
         clientSendingObject: (obj) =>
-          clientSocketStub.queue(JSON.stringify(obj) + '\n'),
+          clientSocketStub.push(JSON.stringify(obj) + '\n'),
         clientSendingLine: (str) =>
-          clientSocketStub.queue(str + '\n'),
+          clientSocketStub.push(str + '\n'),
         clientSendingString: (str) =>
-          clientSocketStub.queue(str),
+          clientSocketStub.push(str),
 
         boilerBaySendingLine: (str) =>
           api.simulate.boilerBaySendingString(str + '\n'),
         boilerBaySendingString: (str) =>
-          boilerBaySocketStub.queue({ toString: () => str}),
+          boilerBaySocketStub.push({ toString: () => str}),
 
       },
       check: {

@@ -32,10 +32,6 @@ DuplexStub.prototype._write = function(obj, _, cb) {
   cb()
 }
 
-DuplexStub.prototype.queue = function (val) {
-  this.push(val)
-}
-
 DuplexStub.prototype.onFirst = function (inputPattern, outputValue) {
   this._stubs.push({
     matches: 0,
