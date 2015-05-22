@@ -171,26 +171,25 @@ export default (tape) => {
       },
       simulate: {
         clientSendingObject: (obj) =>
-          clientSocketStub.push(JSON.stringify(obj) + '\n'),
+          api.simulate.clientSendingLine(JSON.stringify(obj)),
         clientSendingLine: (str) =>
-          clientSocketStub.push(str + '\n'),
+          api.simulate.clientSendingString(str + '\n'),
         clientSendingString: (str) =>
           clientSocketStub.push(str),
 
         boilerBaySendingLine: (str) =>
           api.simulate.boilerBaySendingString(str + '\n'),
         boilerBaySendingString: (str) =>
-          boilerBaySocketStub.push({ toString: () => str}),
-
+          boilerBaySocketStub.push({ toString: () => str})
       },
       check: {
-        boilerBayReceivedString: (str, times) =>
-          boilerBaySocketStub.received(str, times),
-        boilerBayReceivedLine: (line, times) =>
-          boilerBaySocketStub.received(line + '\n', times),
         clientReceivedObject: (obj) =>
-          clientSocketStub.received(JSON.stringify(obj) + '\n')
+          clientSocketStub.received(JSON.stringify(obj) + '\n'),
 
+        boilerBayReceivedLine: (line) =>
+          api.check.boilerBayReceivedString(line + '\n'),
+        boilerBayReceivedString: (str) =>
+          boilerBaySocketStub.received(str)
       }
     }
     return api
