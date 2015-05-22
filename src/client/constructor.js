@@ -25,7 +25,6 @@ let constructor = (net, path) => {
 
   _(connection)
     .fork()
-    .doto(logger('out from connection'))
     .map(JSON.parse)
     .each(function(resp) {
       if (resp.consumeStarted || resp.commitOK) {
