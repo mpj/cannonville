@@ -7,343 +7,194 @@ import duplexStub from '../stream-utils/duplex-stub'
 
 export default (tape) => {
   tape('connects to bb', (t) => {
-    t.plan(1)
-
-    let world = {
-      state: {}
-    }
-
-    world.state.mockBoilerBaySocket = duplexStub()
-    world.state.mockClientSocket = duplexStub()
-
-    let net = {
-      connect: sinon.spy(() =>
-        world.state.mockBoilerBaySocket),
-      createServer: (callback) => {
-        world.state.mockClientSocket
-        callback(world.state.mockClientSocket)
-        return world.state.mockServer = {
-          listen: sinon.stub()
-        }
-      },
-    }
-    let guid = () => 'a389d8de-87c5-43cf-bf93-8b155b5fe263'
-
-    constructor(net, guid, '192.168.0.1:1234', 4567)
-
-    assert(world.state.mockServer.listen.calledWith(4567))
-    assert(net.connect.calledWith(1234, '192.168.0.1'))
-
-    world.state.mockClientSocket.queue(JSON.stringify({
+    t.plan(3)
+    let world = makeWorld()
+    constructor(
+      world.stubs.net, world.stubs.guid, '192.168.0.1:1234', 4567)
+    t.ok(world.stubs.server.listen.calledWith(4567))
+    t.ok(world.stubs.net.connect.calledWith(1234, '192.168.0.1'))
+    world.simulate.clientSendingObject({
       event: {
         topic: "myTopic",
         body: {
           hello: 123
         }
       }
-    })+'\n')
+    })
     setTimeout(function() {
-      t.ok(world.state.mockBoilerBaySocket.received(
-        'send myTopic a389d8de87c543cfbf938b155b5fe263 {"hello":123}\n'),
-        'wat')
+      t.ok(world.check.boilerBayReceivedString(
+        'send myTopic ' + world.state.generatedGuid + ' {"hello":123}\n'),
+        'did not bla bla')
       t.end()
     },10)
-
   })
 
 
   tape('converts bb errors to cv errors', (t) => {
     t.plan(1)
-
-    let world = {
-      state: {}
-    }
-
-    world.state.mockBoilerBaySocket = duplexStub()
-    world.state.mockClientSocket = duplexStub()
-    let net = {
-      connect: sinon.spy(() =>
-        world.state.mockBoilerBaySocket),
-      createServer: (callback) => {
-
-        callback(world.state.mockClientSocket)
-        return world.state.mockServer = {
-          listen: sinon.stub()
-        }
-      },
-    }
-    let guid = () => {}
-
-    constructor(net, guid, '192.168.0.1:1234', 4567)
-
-    world.state.mockBoilerBaySocket.queue('error some-code oh my god')
+    let world = makeWorld()
+    constructor(world.stubs.net, world.stubs.guid, '192.168.0.1:1234', 4567)
+    world.simulate.boilerBaySendingLine('error some-code oh my god')
     setTimeout(function() {
-      t.ok(world.state.mockClientSocket.received(JSON.stringify({
+      t.ok(world.check.clientReceivedObject({
         error: {
           code: 'some-code',
           message: 'oh my god'
         }
-      })), 'Sent error along to client')
+      }), 'Sent error along to client')
     },10)
 
   })
 
   tape('consume', (t) => {
     t.plan(1)
-
-    let world = {
-      state: {}
-    }
-    world.state.guidGenerated = 'abc1234'
-    world.state.mockBoilerBaySocket = duplexStub()
-    world.state.mockClientSocket = duplexStub()
-    let net = {
-      connect: sinon.spy(() =>
-        world.state.mockBoilerBaySocket),
-      createServer: (callback) => {
-
-        callback(world.state.mockClientSocket)
-        return world.state.mockServer = {
-          listen: sinon.stub()
-        }
-      },
-    }
-    let guid = () => world.state.guidGenerated
-
-    constructor(net, guid, '192.168.0.1:1234', 4567)
-
-    world.state.mockClientSocket.queue(JSON.stringify({
+    let world = makeWorld()
+    constructor(world.stubs.net, world.stubs.guid, '192.168.0.1:1234', 4567)
+    world.simulate.clientSendingObject({
       consume: {
         offsetReset: 'smallest',
         topic: 'my_fine_topic'
         // leaving group undefined
       },
-    })+'\n\n')
-
+    })
     setTimeout(function() {
-      t.ok(world.state.mockBoilerBaySocket.received(
-        'consume my_fine_topic abc1234 smallest\n'))
+      t.ok(world.check.boilerBayReceivedString(
+        'consume my_fine_topic ' + world.state.generatedGuid +' smallest\n'))
     },10)
-
   })
 
   tape('next', (t) => {
     t.plan(1)
-
-    let world = {
-      state: {}
-    }
-    world.state.guidGenerated = 'abc1234'
-    world.state.mockBoilerBaySocket = duplexStub()
-    world.state.mockClientSocket = duplexStub()
-    let net = {
-      connect: sinon.spy(() =>
-        world.state.mockBoilerBaySocket),
-      createServer: (callback) => {
-
-        callback(world.state.mockClientSocket)
-        return world.state.mockServer = {
-          listen: sinon.stub()
-        }
-      },
-    }
-    let guid = () => world.state.guidGenerated
-
-    constructor(net, guid, '192.168.0.1:1234', 4567)
-
-    world.state.mockClientSocket.queue(JSON.stringify({
+    let world = makeWorld()
+    constructor(world.stubs.net, world.stubs.guid, '192.168.0.1:1234', 4567)
+    world.simulate.clientSendingObject({
       next: true
-    })+'\n')
-
-    t.ok(world.state.mockBoilerBaySocket.received('next\n'))
+    })
+    t.ok(world.check.boilerBayReceivedString('next\n'))
   })
 
   tape('handles two messages in one push', (t) => {
     t.plan(1)
-
-    let world = {
-      state: {}
-    }
-    world.state.guidGenerated = 'abc1234'
-    world.state.mockBoilerBaySocket = duplexStub()
-    world.state.mockClientSocket = duplexStub()
-    let net = {
-      connect: sinon.spy(() =>
-        world.state.mockBoilerBaySocket),
-      createServer: (callback) => {
-
-        callback(world.state.mockClientSocket)
-        return world.state.mockServer = {
-          listen: sinon.stub()
-        }
-      },
-    }
-    let guid = () => world.state.guidGenerated
-
-    constructor(net, guid, '192.168.0.1:1234', 4567)
-
-    world.state.mockClientSocket.queue(
+    let world = makeWorld()
+    constructor(world.stubs.net, world.stubs.guid, '192.168.0.1:1234', 4567)
+    world.simulate.clientSendingString(
       JSON.stringify({ next: true }) + '\n' +
       JSON.stringify({ next: true }) + '\n'
     )
-
-
     setTimeout(() =>
-      t.equal(world.state.mockBoilerBaySocket.received('next\n'),2), 10)
-
-
+      t.equal(world.check.boilerBayReceivedLine('next'), 2)
+    , 10)
   })
 
   tape('commit', (t) => {
     t.plan(1)
-
-    let world = {
-      state: {}
-    }
-    world.state.guidGenerated = 'abc1234'
-    world.state.mockBoilerBaySocket = duplexStub()
-    world.state.mockClientSocket = duplexStub()
-    let net = {
-      connect: sinon.spy(() =>
-        world.state.mockBoilerBaySocket),
-      createServer: (callback) => {
-
-        callback(world.state.mockClientSocket)
-        return world.state.mockServer = {
-          listen: sinon.stub()
-        }
-      },
-    }
-    let guid = () => world.state.guidGenerated
-
-    constructor(net, guid, '192.168.0.1:1234', 4567)
-
-    world.state.mockClientSocket.queue(JSON.stringify({
+    let world = makeWorld()
+    constructor(world.stubs.net, world.stubs.guid, '192.168.0.1:1234', 4567)
+    world.simulate.clientSendingObject({
       commit: true
-    })+'\n')
-
-    t.ok(world.state.mockBoilerBaySocket.received('commit\n'))
-
+    })
+    t.ok(world.check.boilerBayReceivedLine('commit'))
   })
 
   tape('msg', (t) => {
     t.plan(2)
-
-    let world = {
-      state: {}
-    }
-    world.state.guidGenerated = 'abc1234'
-    world.state.mockBoilerBaySocket = duplexStub()
-    world.state.mockClientSocket = duplexStub()
-    let net = {
-      connect: sinon.spy(() =>
-        world.state.mockBoilerBaySocket),
-      createServer: (callback) => {
-
-        callback(world.state.mockClientSocket)
-        return world.state.mockServer = {
-          listen: sinon.stub()
-        }
-      },
-    }
-    let guid = () => world.state.guidGenerated
-
-    constructor(net, guid, '192.168.0.1:1234', 4567)
-
-    world.state.mockBoilerBaySocket.queue({
-      toString: () =>
-        'ready\n'
-    })
-
-    world.state.mockBoilerBaySocket.queue({
-      toString: () =>
-        'msg ' +
-        JSON.stringify({
-          hello: 123
-        }) +
-        '\n'
-    })
-
+    let world = makeWorld()
+    constructor(world.stubs.net, world.stubs.guid, '192.168.0.1:1234', 4567)
+    world.simulate.boilerBaySendingLine('ready')
+    world.simulate.boilerBaySendingLine(
+      'msg ' +
+      JSON.stringify({
+        hello: 123
+      }))
     setTimeout(() => {
-      t.ok(world.state.mockClientSocket.received(
-        '{"message":{"hello":123}}'
-      ))
-
-      t.notOk(world.state.mockClientSocket.received(undefined))
+      t.ok(world.check.clientReceivedObject({
+        message: {
+          hello: 123
+        }
+      }))
+      t.notOk(world.stubs.clientSocket.received(undefined))
     },10)
-
   })
 
   tape('consume-started', (t) => {
     t.plan(1)
-
-    let world = {
-      state: {}
-    }
-    world.state.guidGenerated = 'abc1234'
-    world.state.mockBoilerBaySocket = duplexStub()
-    world.state.mockClientSocket = duplexStub()
-    let net = {
-      connect: sinon.spy(() =>
-        world.state.mockBoilerBaySocket),
-      createServer: (callback) => {
-
-        callback(world.state.mockClientSocket)
-        return world.state.mockServer = {
-          listen: sinon.stub()
-        }
-      },
-    }
-    let guid = () => world.state.guidGenerated
-
-    constructor(net, guid, '192.168.0.1:1234', 4567)
-
-    world.state.mockBoilerBaySocket.queue(
-      'consume-started\n'
-    )
-
+    let world = makeWorld()
+    constructor(world.stubs.net, world.stubs.guid, '192.168.0.1:1234', 4567)
+    world.simulate.boilerBaySendingLine('consume-started')
     setTimeout(() => {
-      t.ok(world.state.mockClientSocket.received(
-        '{"consumeStarted":true}'
+      t.ok(world.check.clientReceivedObject({
+        consumeStarted :true }
       ))
     },10)
-
   })
 
   tape('commit-ok', (t) => {
     t.plan(1)
+    let world = makeWorld()
+    constructor(world.stubs.net, world.stubs.guid, '192.168.0.1:1234', 4567)
+    world.simulate.boilerBaySendingLine('commit-ok')
+    setTimeout(() => {
+      t.ok(world.check.clientReceivedObject({
+        commitOK: true
+      }))
+    },10)
+  })
 
-    let world = {
-      state: {}
+  let makeWorld = () => {
+
+    let state = {
+      generatedGuid: 'abc1234'
     }
-    world.state.guidGenerated = 'abc1234'
-    world.state.mockBoilerBaySocket = duplexStub()
-    world.state.mockClientSocket = duplexStub()
-    let net = {
-      connect: sinon.spy(() =>
-        world.state.mockBoilerBaySocket),
-      createServer: (callback) => {
 
-        callback(world.state.mockClientSocket)
-        return world.state.mockServer = {
-          listen: sinon.stub()
-        }
+    let boilerBaySocketStub = duplexStub()
+    let clientSocketStub    = duplexStub()
+    let serverStub          = {
+      listen: sinon.stub()
+    }
+
+    let netStub = {
+      connect: sinon.spy(() => boilerBaySocketStub),
+      createServer: (callback) => {
+        callback(clientSocketStub)
+        return serverStub
       },
     }
-    let guid = () => world.state.guidGenerated
+    let guidStub = () => state.generatedGuid
 
-    constructor(net, guid, '192.168.0.1:1234', 4567)
+    let api = {
+      state,
+      stubs: {
+        net: netStub,
+        guid: guidStub,
+        server: serverStub,
+        clientSocket: clientSocketStub
+      },
+      simulate: {
+        clientSendingObject: (obj) =>
+          clientSocketStub.queue(JSON.stringify(obj) + '\n'),
+        clientSendingLine: (str) =>
+          clientSocketStub.queue(str + '\n'),
+        clientSendingString: (str) =>
+          clientSocketStub.queue(str),
 
-    world.state.mockBoilerBaySocket.queue(
-      'commit-ok\n'
-    )
+        boilerBaySendingLine: (str) =>
+          api.simulate.boilerBaySendingString(str + '\n'),
+        boilerBaySendingString: (str) =>
+          boilerBaySocketStub.queue({ toString: () => str}),
 
-    setTimeout(() => {
-      t.ok(world.state.mockClientSocket.received(
-        '{"commitOK":true}'
-      ))
-    },10)
+      },
+      check: {
+        boilerBayReceivedString: (str, times) =>
+          boilerBaySocketStub.received(str, times),
+        boilerBayReceivedLine: (line, times) =>
+          boilerBaySocketStub.received(line + '\n', times),
+        clientReceivedObject: (obj) =>
+          clientSocketStub.received(JSON.stringify(obj) + '\n')
 
-  })
+      }
+    }
+    return api
+
+  }
 
 }

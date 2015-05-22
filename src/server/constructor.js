@@ -58,7 +58,7 @@ let constructor = (net, guid, boilerBayPath, serverPort) => {
         }
       })
       .compact()
-      .map(JSON.stringify)
+      .map((x) => JSON.stringify(x) + '\n')
       .pipe(cannonvilleConnection)
   })
   server.listen(serverPort)
