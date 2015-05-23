@@ -45,7 +45,7 @@ export default (tape) => {
         t.pass)
   })
 
-  tape('consume', { timeout:1000 }, (t) => {
+  tape('consume (smallest)', { timeout:1000 }, (t) => {
     t.plan(1)
     let sim = makeSimulation()
     constructor(sim.net, sim.guid, '192.168.0.1:1234', 4567)
@@ -59,6 +59,39 @@ export default (tape) => {
     sim.boilerBaySocket
       .await("consume my_fine_topic " +
         sim.guidToGenerate + " smallest\n", t.pass)
+
+  })
+
+  tape('consume (smallest, group specified)', { timeout:1000 }, (t) => {
+    t.plan(1)
+    let sim = makeSimulation()
+    constructor(sim.net, sim.guid, '192.168.0.1:1234', 4567)
+    sim.clientSocket.push(asLine({
+      consume: {
+        offsetReset: 'smallest',
+        topic: 'my_fine_topic',
+        group: 'grp1234bca'
+      },
+    }))
+    sim.boilerBaySocket
+      .await("consume my_fine_topic " +
+      'grp1234bca' + " smallest\n", t.pass)
+  })
+
+  tape('consume (largest)', { timeout:1000 }, (t) => {
+    t.plan(1)
+    let sim = makeSimulation()
+    constructor(sim.net, sim.guid, '192.168.0.1:1234', 4567)
+    sim.clientSocket.push(asLine({
+      consume: {
+        offsetReset: 'largest',
+        topic: 'my_fine_topic'
+        // leaving group undefined
+      },
+    }))
+    sim.boilerBaySocket
+      .await("consume my_fine_topic " +
+        sim.guidToGenerate + " largest\n", t.pass)
 
   })
 

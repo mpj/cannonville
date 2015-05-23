@@ -21,7 +21,7 @@ let constructor = (net, guid, boilerBayPath, serverPort) => {
         } else if(command.consume) {
           return 'consume ' +
             command.consume.topic + ' ' +
-            guid() + ' ' +
+            (command.consume.group || guid()) + ' ' +
             command.consume.offsetReset +
             '\n'
         } else if (command.next) {

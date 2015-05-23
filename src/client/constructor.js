@@ -1,4 +1,5 @@
 import _ from 'highland'
+import partial from 'mout/function/partial'
 import logger from '../stream-utils/logger'
 import duplex from 'duplexer'
 
@@ -45,16 +46,17 @@ let constructor = (net, path) => {
 
     })
 
-  api.replay = (topic, callback) => {
+  let consume = (offsetReset, topic, callback) => {
     currentConsumerCallback = callback
     connection.write(JSON.stringify({
       consume: {
         topic,
-        offsetReset: 'smallest'
+        offsetReset
       }
     })+'\n')
-
   }
+  api.replay = partial(consume, 'smallest')
+  api.play   = partial(consume, 'largest')
 
   return api
 }

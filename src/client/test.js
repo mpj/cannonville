@@ -49,7 +49,7 @@ export default (tape) => {
     }))
   })
 
-  tape('sends consume when replaying', (t) => {
+  tape('sends consume (smallest) when replaying', (t) => {
     t.plan(2)
     t.timeoutAfter(100)
 
@@ -79,7 +79,6 @@ export default (tape) => {
     }), asLine({
       commitOK: true
     }))
-    sim.connection.probe()
     sim.connection.awaitSequence([
       asLine({ commit: true}),
       asLine({ next: true}),
@@ -87,6 +86,51 @@ export default (tape) => {
 
 
     api.replay('the_topic', (event, ack) => {
+      t.deepEqual(event, {
+        hello: 123
+      }, 'callback got event')
+      ack()
+    })
+
+  })
+
+  tape('sends consume (largest) when playing', (t) => {
+    t.plan(2)
+    t.timeoutAfter(100)
+
+    let sim = makeSimulation()
+
+    let api = constructor(sim.net, 'localhost:1234')
+
+    sim.connection.onFirst(asLine({
+      consume: {
+        topic: 'the_topic',
+        offsetReset: 'largest'
+      }
+    }), asLine({
+      consumeStarted: true
+    }))
+
+    sim.connection.onFirst(asLine({
+      next: true
+    }), JSON.stringify({
+      message: {
+        hello: 123
+      }
+    }))
+
+    sim.connection.onFirst(asLine({
+      commit: true
+    }), asLine({
+      commitOK: true
+    }))
+    sim.connection.awaitSequence([
+      asLine({ commit: true}),
+      asLine({ next: true}),
+    ], () => t.pass('Sent a final next after the commit'))
+
+
+    api.play('the_topic', (event, ack) => {
       t.deepEqual(event, {
         hello: 123
       }, 'callback got event')
