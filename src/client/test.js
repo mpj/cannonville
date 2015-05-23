@@ -2,43 +2,37 @@ import constructor from './constructor'
 import _ from 'highland'
 import duplexStub from '../stream-utils/duplex-stub'
 import logger from '../stream-utils/logger'
+import asLine from '../stream-utils/as-line'
+
 
 export default (tape) => {
   tape('opens connection an writes to it', (t) => {
     t.plan(1);
 
-    let connection = duplexStub()
-    let net = {
-      connect: () => connection
-    }
+    let sim = makeSimulation();
 
-    let api = constructor(net, 'localhost:1234')
-    _([{
+    let api = constructor(sim.net, 'localhost:1234')
+    api.write({
       topic: 'mytopic',
       body: {
         hello: 123
       }
-    }]).pipe(api)
-
-    t.ok(connection.received(JSON.stringify({
-      event: {
-        topic: 'mytopic',
-        body: {
-          hello: 123
+    })
+    sim.connection.await(asLine({
+      "event": {
+        "topic": "mytopic",
+        "body": {
+          "hello": 123
         }
       }
-    })+'\n'))
+    }), t.pass)
   })
 
   tape('coerces errors to node errors', (t) => {
     t.plan(2)
 
-    let connection = _();
-    let net = {
-      connect: () => connection
-    }
-
-    let api = constructor(net, 'localhost:1234')
+    let sim = makeSimulation()
+    let api = constructor(sim.net, 'localhost:1234')
 
     _(api)
       .errors((e) => {
@@ -47,53 +41,48 @@ export default (tape) => {
       })
       .each(logger('hmm'))
 
-    connection.write(JSON.stringify({
+    sim.connection.push(asLine({
       error: {
         code: 'some-error',
         message: 'Everything broke!'
       }
     }))
-
   })
-
 
   tape('sends consume when replaying', (t) => {
     t.plan(2)
     t.timeoutAfter(100)
 
-    let connection = duplexStub();
-    let net = {
-      connect: () => connection
-    }
+    let sim = makeSimulation()
 
-    let api = constructor(net, 'localhost:1234')
+    let api = constructor(sim.net, 'localhost:1234')
 
-    connection.onFirst(JSON.stringify({
+    sim.connection.onFirst(asLine({
       consume: {
         topic: 'the_topic',
         offsetReset: 'smallest'
       }
-    })+'\n', JSON.stringify({
+    }), asLine({
       consumeStarted: true
-    })+'\n')
+    }))
 
-    connection.onFirst(JSON.stringify({
+    sim.connection.onFirst(asLine({
       next: true
-    })+'\n', JSON.stringify({
+    }), JSON.stringify({
       message: {
         hello: 123
       }
-    })+'\n')
+    }))
 
-    connection.onFirst(JSON.stringify({
+    sim.connection.onFirst(asLine({
       commit: true
-    })+'\n', JSON.stringify({
+    }), asLine({
       commitOK: true
-    })+'\n')
+    }))
     setTimeout(() => {
-      t.deepEqual(connection.lastWrite, JSON.stringify({
+      t.deepEqual(sim.connection.lastWrite, asLine({
         next: true
-      })+'\n', 'sent a final next')
+      }), 'sent a final next')
     },10)
 
     api.replay('the_topic', (event, ack) => {
@@ -104,4 +93,14 @@ export default (tape) => {
     })
 
   })
+
+  let makeSimulation = () => {
+    let simulation = {
+      connection: duplexStub(),
+      net: {
+        connect: () => simulation.connection
+      }
+    }
+    return simulation;
+  }
 }

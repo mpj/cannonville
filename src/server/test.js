@@ -2,9 +2,10 @@ import _ from 'highland'
 import constructor from './constructor'
 import sinon from 'sinon'
 import assert from 'assert'
-import isString from 'mout/lang/isString'
+
 import logger from '../stream-utils/logger'
 import duplexStub from '../stream-utils/duplex-stub'
+import asLine from '../stream-utils/as-line'
 
 export default (tape) => {
 
@@ -121,7 +122,7 @@ export default (tape) => {
     world.stubs.clientSocket.await("{\"commitOK\":true}\n", t.pass)
   })
 
-  let asLine = (x) => (isString(x) ? x : JSON.stringify(x)) + '\n'
+
 
   let makeWorld = () => {
 

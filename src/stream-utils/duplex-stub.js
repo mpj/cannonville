@@ -126,6 +126,8 @@ DuplexStub.prototype.probe = function() {
     console.log(JSON.stringify(x, null,2))
     console.log('Tip: Use copy(pv) to copy value to clipboard')
     window.pv = JSON.stringify(x, null,2);
+    window.pvr = x; // raw
+    try { window.pvp = JSON.parse(x); } catch(_) {} // parsed
   })
 }
 
