@@ -2,148 +2,131 @@ import _ from 'highland'
 import constructor from './constructor'
 import sinon from 'sinon'
 import assert from 'assert'
+import isString from 'mout/lang/isString'
 import logger from '../stream-utils/logger'
 import duplexStub from '../stream-utils/duplex-stub'
 
 export default (tape) => {
-  tape('connects to bb', (t) => {
+
+  tape('connects to bb', { timeout: 1000}, (t) => {
     t.plan(3)
+
     let world = makeWorld()
+
     constructor(
       world.stubs.net, world.stubs.guid, '192.168.0.1:1234', 4567)
     t.ok(world.stubs.server.listen.calledWith(4567))
     t.ok(world.stubs.net.connect.calledWith(1234, '192.168.0.1'))
-    world.simulate.clientSendingObject({
+    world.stubs.clientSocket.push(asLine({
       event: {
         topic: "myTopic",
         body: {
           hello: 123
         }
       }
-    })
-    setTimeout(function() {
-      t.ok(world.check.boilerBayReceivedString(
-        'send myTopic ' + world.state.generatedGuid + ' {"hello":123}\n'),
-        'did not bla bla')
-      t.end()
-    },10)
+    }))
+    world.stubs
+      .boilerBaySocket
+      .await(1,
+        'send myTopic ' + world.state.guidToGenerate + ' {"hello":123}\n',
+        t.pass)
   })
 
 
-  tape('converts bb errors to cv errors', (t) => {
+  tape('converts bb errors to cv errors', { timeout: 1000 }, (t) => {
     t.plan(1)
     let world = makeWorld()
     constructor(world.stubs.net, world.stubs.guid, '192.168.0.1:1234', 4567)
-    world.simulate.boilerBaySendingLine('error some-code oh my god')
-    setTimeout(function() {
-      t.ok(world.check.clientReceivedObject({
-        error: {
-          code: 'some-code',
-          message: 'oh my god'
-        }
-      }), 'Sent error along to client')
-    },10)
-
+    world.stubs.boilerBaySocket.push(asLine('error some-code oh my god'))
+    world.stubs.clientSocket
+      .await(
+        "{\"error\":{\"code\":\"some-code\",\"message\":\"oh my god\"}}\n",
+        t.pass)
   })
 
-  tape('consume', (t) => {
+  tape('consume', { timeout:1000 }, (t) => {
     t.plan(1)
     let world = makeWorld()
     constructor(world.stubs.net, world.stubs.guid, '192.168.0.1:1234', 4567)
-    world.simulate.clientSendingObject({
+    world.stubs.clientSocket.push(asLine({
       consume: {
         offsetReset: 'smallest',
         topic: 'my_fine_topic'
         // leaving group undefined
       },
-    })
-    setTimeout(function() {
-      t.ok(world.check.boilerBayReceivedString(
-        'consume my_fine_topic ' + world.state.generatedGuid +' smallest\n'))
-    },10)
+    }))
+    world.stubs.boilerBaySocket
+      .await("consume my_fine_topic " +
+        world.state.guidToGenerate + " smallest\n", t.pass)
+
   })
 
-  tape('next', (t) => {
+  tape('next', {timeout:1000}, (t) => {
     t.plan(1)
     let world = makeWorld()
     constructor(world.stubs.net, world.stubs.guid, '192.168.0.1:1234', 4567)
-    world.simulate.clientSendingObject({
+    world.stubs.clientSocket.push(asLine({
       next: true
-    })
-    t.ok(world.check.boilerBayReceivedString('next\n'))
+    }))
+    world.stubs.boilerBaySocket.await("next\n", t.pass)
   })
 
-  tape('handles two messages in one push', (t) => {
+  tape('handles two messages in one push', {timeout: 1000}, (t) => {
     t.plan(1)
     let world = makeWorld()
     constructor(world.stubs.net, world.stubs.guid, '192.168.0.1:1234', 4567)
-    world.simulate.clientSendingString(
-      JSON.stringify({ next: true }) + '\n' +
-      JSON.stringify({ next: true }) + '\n'
-    )
-    setTimeout(() =>
-      t.equal(world.check.boilerBayReceivedLine('next'), 2)
-    , 10)
+    world.stubs.clientSocket.push(
+      asLine({ next: true }) + asLine({ next: true }))
+    world.stubs.boilerBaySocket.await(2, "next\n", t.pass)
   })
 
-  tape('commit', (t) => {
+  tape('commit', {timeout:1000}, (t) => {
     t.plan(1)
     let world = makeWorld()
     constructor(world.stubs.net, world.stubs.guid, '192.168.0.1:1234', 4567)
-    world.simulate.clientSendingObject({
+    world.stubs.clientSocket.push(asLine({
       commit: true
-    })
-    t.ok(world.check.boilerBayReceivedLine('commit'))
+    }))
+    world.stubs.boilerBaySocket.await("commit\n", t.pass)
+
   })
 
-  tape('msg', (t) => {
+  tape('msg', {timeout: 1000}, (t) => {
     t.plan(2)
     let world = makeWorld()
     constructor(world.stubs.net, world.stubs.guid, '192.168.0.1:1234', 4567)
-    world.simulate.boilerBaySendingLine('ready')
-    world.simulate.boilerBaySendingLine(
-      'msg ' +
-      JSON.stringify({
-        hello: 123
-      }))
-    setTimeout(() => {
-      t.ok(world.check.clientReceivedObject({
-        message: {
-          hello: 123
-        }
-      }))
-      t.notOk(world.stubs.clientSocket.received(undefined))
-    },10)
+    world.stubs.boilerBaySocket.push(asLine('ready'))
+    world.stubs.boilerBaySocket.push('msg ' + asLine({ hello: 123 }))
+    world.stubs.clientSocket.await(
+      "{\"message\":{\"hello\":123}}\n", t.pass)
+    world.stubs.clientSocket.awaitNot("undefined\n", t.pass)
   })
 
   tape('consume-started', (t) => {
     t.plan(1)
     let world = makeWorld()
     constructor(world.stubs.net, world.stubs.guid, '192.168.0.1:1234', 4567)
-    world.simulate.boilerBaySendingLine('consume-started')
-    setTimeout(() => {
-      t.ok(world.check.clientReceivedObject({
-        consumeStarted :true }
-      ))
-    },10)
+    world.stubs.boilerBaySocket.push('consume-started\n')
+    world.stubs.clientSocket.await(
+      "{\"consumeStarted\":true}\n",
+      t.pass
+    )
   })
 
-  tape('commit-ok', (t) => {
+  tape('commit-ok', {timeout:1000}, (t) => {
     t.plan(1)
     let world = makeWorld()
     constructor(world.stubs.net, world.stubs.guid, '192.168.0.1:1234', 4567)
-    world.simulate.boilerBaySendingLine('commit-ok')
-    setTimeout(() => {
-      t.ok(world.check.clientReceivedObject({
-        commitOK: true
-      }))
-    },10)
+    world.stubs.boilerBaySocket.push('commit-ok\n')
+    world.stubs.clientSocket.await("{\"commitOK\":true}\n", t.pass)
   })
+
+  let asLine = (x) => (isString(x) ? x : JSON.stringify(x)) + '\n'
 
   let makeWorld = () => {
 
     let state = {
-      generatedGuid: 'abc1234'
+      guidToGenerate: Math.floor(Math.random()*10000000).toString()
     }
 
     let boilerBaySocketStub = duplexStub()
@@ -159,7 +142,7 @@ export default (tape) => {
         return serverStub
       },
     }
-    let guidStub = () => state.generatedGuid
+    let guidStub = () => state.guidToGenerate
 
     let api = {
       state,
@@ -167,29 +150,8 @@ export default (tape) => {
         net: netStub,
         guid: guidStub,
         server: serverStub,
-        clientSocket: clientSocketStub
-      },
-      simulate: {
-        clientSendingObject: (obj) =>
-          api.simulate.clientSendingLine(JSON.stringify(obj)),
-        clientSendingLine: (str) =>
-          api.simulate.clientSendingString(str + '\n'),
-        clientSendingString: (str) =>
-          clientSocketStub.push(str),
-
-        boilerBaySendingLine: (str) =>
-          api.simulate.boilerBaySendingString(str + '\n'),
-        boilerBaySendingString: (str) =>
-          boilerBaySocketStub.push({ toString: () => str})
-      },
-      check: {
-        clientReceivedObject: (obj) =>
-          clientSocketStub.received(JSON.stringify(obj) + '\n'),
-
-        boilerBayReceivedLine: (line) =>
-          api.check.boilerBayReceivedString(line + '\n'),
-        boilerBayReceivedString: (str) =>
-          boilerBaySocketStub.received(str)
+        clientSocket: clientSocketStub,
+        boilerBaySocket: boilerBaySocketStub
       }
     }
     return api
