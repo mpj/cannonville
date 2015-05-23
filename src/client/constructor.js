@@ -46,11 +46,13 @@ let constructor = (net, path) => {
 
     })
 
-  let consume = (offsetReset, topic, callback) => {
+  let consume = (offsetReset, topic, group, callback) => {
+    if (!callback) callback = group
     currentConsumerCallback = callback
     connection.write(JSON.stringify({
       consume: {
         topic,
+        group,
         offsetReset
       }
     })+'\n')
