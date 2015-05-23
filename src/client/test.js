@@ -79,11 +79,12 @@ export default (tape) => {
     }), asLine({
       commitOK: true
     }))
-    setTimeout(() => {
-      t.deepEqual(sim.connection.lastWrite, asLine({
-        next: true
-      }), 'sent a final next')
-    },10)
+    sim.connection.probe()
+    sim.connection.awaitSequence([
+      asLine({ commit: true}),
+      asLine({ next: true}),
+    ], () => t.pass('Sent a final next after the commit'))
+
 
     api.replay('the_topic', (event, ack) => {
       t.deepEqual(event, {

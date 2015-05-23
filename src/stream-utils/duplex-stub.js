@@ -41,6 +41,8 @@ DuplexStub.prototype._write = function(obj, _, cb) {
   })
 
   cb()
+
+  this._checkAwaits()
 }
 
 DuplexStub.prototype.onFirst = function (inputPattern, outputValue) {
@@ -59,9 +61,13 @@ DuplexStub.prototype.received = function(pattern) {
 DuplexStub.prototype._checkAwaits = function() {
   let clean = []
   this._awaits.forEach((await) => {
-    let timesReceived = this._receivedValues.filter((x) =>
-      deepMatches(x, await.pattern)).length
-    if (timesReceived >= await.times) {
+    let patternSequence = await.patternSequence || [await.pattern]
+    let sequenceMatches = this._receivedValues.reduce((matches, cur) => {
+      if (!patternSequence[matches]) return matches;
+      return deepMatches(cur, patternSequence[matches]) ? matches + 1 : 0
+    }, 0)
+    let isMatch = sequenceMatches === patternSequence.length
+    if(isMatch) {
       clean.push(await)
       await.callback()
     }
@@ -98,6 +104,31 @@ DuplexStub.prototype.await = function(times, pattern, callback) {
   this._checkAwaits()
 }
 
+DuplexStub.prototype.awaitSequence = function(patternSequence, callback) {
+  if (!isFunction(callback))
+    throw new Error('Must provide callback')
+
+  let handle = setTimeout(() => {
+    throw new Error(
+      'Duplex Stub timed out.\n' +
+      'Awaited this pattern sequence:\n' +
+      JSON.stringify(patternSequence, null, 2) + '\n\n' +
+      'The following values were written to the stub:\n' +
+      JSON.stringify(this._receivedValues, null, 2)
+    )
+  }, 100)
+  this._awaits.push({
+    patternSequence,
+    callback: () => {
+      clearTimeout(handle)
+      callback()
+    }
+  })
+  this._checkAwaits()
+}
+
+
+
 DuplexStub.prototype.awaitNot = function(pattern, callback) {
   if (!isFunction(callback))
     throw new Error('Must provide callback')
@@ -124,7 +155,6 @@ DuplexStub.prototype.probe = function() {
   _(this._probeOut).each((x) => {
     console.log('[PROBE]')
     console.log(JSON.stringify(x, null,2))
-    console.log('Tip: Use copy(pv) to copy value to clipboard')
     window.pv = JSON.stringify(x, null,2);
     window.pvr = x; // raw
     try { window.pvp = JSON.parse(x); } catch(_) {} // parsed
