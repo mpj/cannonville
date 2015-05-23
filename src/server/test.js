@@ -12,13 +12,13 @@ export default (tape) => {
   tape('connects to bb', { timeout: 1000}, (t) => {
     t.plan(3)
 
-    let world = makeWorld()
+    let sim = makeSimulation()
 
     constructor(
-      world.stubs.net, world.stubs.guid, '192.168.0.1:1234', 4567)
-    t.ok(world.stubs.server.listen.calledWith(4567))
-    t.ok(world.stubs.net.connect.calledWith(1234, '192.168.0.1'))
-    world.stubs.clientSocket.push(asLine({
+      sim.net, sim.guid, '192.168.0.1:1234', 4567)
+    t.ok(sim.server.listen.calledWith(4567))
+    t.ok(sim.net.connect.calledWith(1234, '192.168.0.1'))
+    sim.clientSocket.push(asLine({
       event: {
         topic: "myTopic",
         body: {
@@ -26,20 +26,20 @@ export default (tape) => {
         }
       }
     }))
-    world.stubs
+    sim
       .boilerBaySocket
       .await(1,
-        'send myTopic ' + world.state.guidToGenerate + ' {"hello":123}\n',
+        'send myTopic ' + sim.guidToGenerate + ' {"hello":123}\n',
         t.pass)
   })
 
 
   tape('converts bb errors to cv errors', { timeout: 1000 }, (t) => {
     t.plan(1)
-    let world = makeWorld()
-    constructor(world.stubs.net, world.stubs.guid, '192.168.0.1:1234', 4567)
-    world.stubs.boilerBaySocket.push(asLine('error some-code oh my god'))
-    world.stubs.clientSocket
+    let sim = makeSimulation()
+    constructor(sim.net, sim.guid, '192.168.0.1:1234', 4567)
+    sim.boilerBaySocket.push(asLine('error some-code oh my god'))
+    sim.clientSocket
       .await(
         "{\"error\":{\"code\":\"some-code\",\"message\":\"oh my god\"}}\n",
         t.pass)
@@ -47,68 +47,68 @@ export default (tape) => {
 
   tape('consume', { timeout:1000 }, (t) => {
     t.plan(1)
-    let world = makeWorld()
-    constructor(world.stubs.net, world.stubs.guid, '192.168.0.1:1234', 4567)
-    world.stubs.clientSocket.push(asLine({
+    let sim = makeSimulation()
+    constructor(sim.net, sim.guid, '192.168.0.1:1234', 4567)
+    sim.clientSocket.push(asLine({
       consume: {
         offsetReset: 'smallest',
         topic: 'my_fine_topic'
         // leaving group undefined
       },
     }))
-    world.stubs.boilerBaySocket
+    sim.boilerBaySocket
       .await("consume my_fine_topic " +
-        world.state.guidToGenerate + " smallest\n", t.pass)
+        sim.guidToGenerate + " smallest\n", t.pass)
 
   })
 
   tape('next', {timeout:1000}, (t) => {
     t.plan(1)
-    let world = makeWorld()
-    constructor(world.stubs.net, world.stubs.guid, '192.168.0.1:1234', 4567)
-    world.stubs.clientSocket.push(asLine({
+    let sim = makeSimulation()
+    constructor(sim.net, sim.guid, '192.168.0.1:1234', 4567)
+    sim.clientSocket.push(asLine({
       next: true
     }))
-    world.stubs.boilerBaySocket.await("next\n", t.pass)
+    sim.boilerBaySocket.await("next\n", t.pass)
   })
 
   tape('handles two messages in one push', {timeout: 1000}, (t) => {
     t.plan(1)
-    let world = makeWorld()
-    constructor(world.stubs.net, world.stubs.guid, '192.168.0.1:1234', 4567)
-    world.stubs.clientSocket.push(
+    let sim = makeSimulation()
+    constructor(sim.net, sim.guid, '192.168.0.1:1234', 4567)
+    sim.clientSocket.push(
       asLine({ next: true }) + asLine({ next: true }))
-    world.stubs.boilerBaySocket.await(2, "next\n", t.pass)
+    sim.boilerBaySocket.await(2, "next\n", t.pass)
   })
 
   tape('commit', {timeout:1000}, (t) => {
     t.plan(1)
-    let world = makeWorld()
-    constructor(world.stubs.net, world.stubs.guid, '192.168.0.1:1234', 4567)
-    world.stubs.clientSocket.push(asLine({
+    let sim = makeSimulation()
+    constructor(sim.net, sim.guid, '192.168.0.1:1234', 4567)
+    sim.clientSocket.push(asLine({
       commit: true
     }))
-    world.stubs.boilerBaySocket.await("commit\n", t.pass)
+    sim.boilerBaySocket.await("commit\n", t.pass)
 
   })
 
   tape('msg', {timeout: 1000}, (t) => {
     t.plan(2)
-    let world = makeWorld()
-    constructor(world.stubs.net, world.stubs.guid, '192.168.0.1:1234', 4567)
-    world.stubs.boilerBaySocket.push(asLine('ready'))
-    world.stubs.boilerBaySocket.push('msg ' + asLine({ hello: 123 }))
-    world.stubs.clientSocket.await(
+    let sim = makeSimulation()
+    constructor(sim.net, sim.guid, '192.168.0.1:1234', 4567)
+    sim.boilerBaySocket.push(asLine('ready'))
+    sim.boilerBaySocket.push('msg ' + asLine({ hello: 123 }))
+    sim.clientSocket.await(
       "{\"message\":{\"hello\":123}}\n", t.pass)
-    world.stubs.clientSocket.awaitNot("undefined\n", t.pass)
+    sim.clientSocket.awaitNot("undefined\n", t.pass)
   })
 
   tape('consume-started', (t) => {
     t.plan(1)
-    let world = makeWorld()
-    constructor(world.stubs.net, world.stubs.guid, '192.168.0.1:1234', 4567)
-    world.stubs.boilerBaySocket.push('consume-started\n')
-    world.stubs.clientSocket.await(
+    let sim = makeSimulation()
+    constructor(sim.net, sim.guid, '192.168.0.1:1234', 4567)
+    sim.boilerBaySocket.push('consume-started\n')
+    sim.clientSocket.await(
       "{\"consumeStarted\":true}\n",
       t.pass
     )
@@ -116,47 +116,34 @@ export default (tape) => {
 
   tape('commit-ok', {timeout:1000}, (t) => {
     t.plan(1)
-    let world = makeWorld()
-    constructor(world.stubs.net, world.stubs.guid, '192.168.0.1:1234', 4567)
-    world.stubs.boilerBaySocket.push('commit-ok\n')
-    world.stubs.clientSocket.await("{\"commitOK\":true}\n", t.pass)
+    let sim = makeSimulation()
+    constructor(sim.net, sim.guid, '192.168.0.1:1234', 4567)
+    sim.boilerBaySocket.push('commit-ok\n')
+    sim.clientSocket.await("{\"commitOK\":true}\n", t.pass)
   })
 
 
 
-  let makeWorld = () => {
+  let makeSimulation = () => {
 
-    let state = {
-      guidToGenerate: Math.floor(Math.random()*10000000).toString()
-    }
-
-    let boilerBaySocketStub = duplexStub()
-    let clientSocketStub    = duplexStub()
-    let serverStub          = {
-      listen: sinon.stub()
-    }
-
-    let netStub = {
-      connect: sinon.spy(() => boilerBaySocketStub),
-      createServer: (callback) => {
-        callback(clientSocketStub)
-        return serverStub
+    let simulation = {
+      guidToGenerate: Math.floor(Math.random()*10000000).toString(),
+      net: {
+        connect: sinon.spy(() => simulation.boilerBaySocket),
+        createServer: (callback) => {
+          callback(simulation.clientSocket)
+          return simulation.server
+        },
       },
+      guid: () => simulation.guidToGenerate,
+      server: {
+        listen: sinon.stub()
+      },
+      clientSocket: duplexStub(),
+      boilerBaySocket: duplexStub()
     }
-    let guidStub = () => state.guidToGenerate
 
-    let api = {
-      state,
-      stubs: {
-        net: netStub,
-        guid: guidStub,
-        server: serverStub,
-        clientSocket: clientSocketStub,
-        boilerBaySocket: boilerBaySocketStub
-      }
-    }
-    return api
-
+    return simulation
   }
 
 }
