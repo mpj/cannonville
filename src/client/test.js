@@ -3,7 +3,7 @@ import _ from 'highland'
 import duplexStub from '../stream-utils/duplex-stub'
 import logger from '../stream-utils/logger'
 import asLine from '../stream-utils/as-line'
-
+import merge from 'mout/object/merge'
 
 export default (tape) => {
 
@@ -25,6 +25,27 @@ export default (tape) => {
         }
       }
     }), () => t.pass('it sends event message data on socket'))
+  })
+
+  tape('when we connect using a given uri, and write to api', (t) => {
+    t.plan(1);
+    t.timeoutAfter(100)
+    let { api, connection } = simulation({
+      connectionURI: 'my-host:666/my-fine-app'
+    })
+    api.write({
+      body: {
+        hello: 123
+      }
+    })
+    connection.await(asLine({
+      "event": {
+        "body": {
+          "hello": 123
+        },
+        "topic": "my-fine-app"
+      }
+    }), () => t.pass('is sends uri part as topic'))
   })
 
   tape('when error message data received on socket', (t) => {
@@ -150,14 +171,17 @@ export default (tape) => {
     }), () => t.pass('it sends next to server'))
   })
 
-  let simulation = () => {
+  let simulation = (opts) => {
+    opts = merge({
+      connectionURI: 'localhost:1234'
+    }, opts)
     let simulation = {
       connection: duplexStub(),
       net: {
         connect: () => simulation.connection
       }
     }
-    simulation.api = constructor(simulation.net, 'localhost:1234')
+    simulation.api = constructor(simulation.net, opts.connectionURI)
     return simulation;
   }
 }

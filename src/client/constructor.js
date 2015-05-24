@@ -3,9 +3,13 @@ import partial from 'mout/function/partial'
 import logger from '../stream-utils/logger'
 import duplex from 'duplexer'
 
-let constructor = (net, path) => {
-  let host = path.split(':')[0]
-  let port = parseInt(path.split(':')[1], 10)
+let constructor = (net, uri) => {
+
+  let parts = uri.match(/(.+):(\d+)(?:\/(.+))?/)
+  let host = parts[1]
+  let port = parseInt(parts[2], 10)
+  let book = parts[3]
+
   let connection = net.connect(port, host);
   connection.on('connect', logger('Cannonville client connected'))
 
@@ -15,6 +19,7 @@ let constructor = (net, path) => {
   let read = _()
   let api = duplex(write, read)
   write
+    .doto((cmd) => cmd.topic = cmd.topic || book)
     .map((cmd) => JSON.stringify({
       event: cmd
     })+'\n')
