@@ -104,6 +104,26 @@ export default (tape) => {
     }), t.pass)
   })
 
+  tape('gets message', (t) => {
+    t.plan(2)
+    t.timeoutAfter(100)
+    let sim = makeSimulation()
+    let api = constructor(sim.net, 'localhost:1234')
+    api.replay('the_topic', (event, ack) => {
+      t.deepEqual(event,{
+        hello: 123
+      })
+    })
+    sim.connection.push(asLine({
+      message: {
+        hello: 123
+      }
+    }))
+    sim.connection.awaitNot(asLine({
+      commit: true
+    }), () => t.pass('did not send commit without ack'))
+  })
+
   tape('sends commit on ack', (t) => {
     t.plan(1)
     t.timeoutAfter(100)
