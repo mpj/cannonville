@@ -10,15 +10,14 @@ export default (tape) => {
   tape('opens connection an writes to it', (t) => {
     t.plan(1);
     t.timeoutAfter(100)
-    let sim = makeSimulation();
-    let api = constructor(sim.net, 'localhost:1234')
+    let { api, connection } = makeSimulation()
     api.write({
       topic: 'mytopic',
       body: {
         hello: 123
       }
     })
-    sim.connection.await(asLine({
+    connection.await(asLine({
       "event": {
         "topic": "mytopic",
         "body": {
@@ -31,8 +30,7 @@ export default (tape) => {
   tape('coerces errors to node errors', (t) => {
     t.plan(2)
     t.timeoutAfter(100)
-    let sim = makeSimulation()
-    let api = constructor(sim.net, 'localhost:1234')
+    let { api, connection } = makeSimulation()
     _(api)
       .errors((e) => {
         t.equal(e.code, 'some-error')
@@ -40,7 +38,7 @@ export default (tape) => {
       })
       .each(logger('hmm'))
 
-    sim.connection.push(asLine({
+    connection.push(asLine({
       error: {
         code: 'some-error',
         message: 'Everything broke!'
@@ -51,9 +49,8 @@ export default (tape) => {
   tape('sends consume (smallest) when replaying', (t) => {
     t.plan(1)
     t.timeoutAfter(100)
-    let sim = makeSimulation()
-    let api = constructor(sim.net, 'localhost:1234')
-    sim.connection.await(asLine({
+    let { api, connection } = makeSimulation()
+    connection.await(asLine({
       consume: {
         topic: 'the_topic',
         offsetReset: 'smallest'
@@ -65,9 +62,8 @@ export default (tape) => {
   tape('sends group when replaying', (t) => {
     t.plan(1)
     t.timeoutAfter(100)
-    let sim = makeSimulation()
-    let api = constructor(sim.net, 'localhost:1234')
-    sim.connection.await(asLine({
+    let { api, connection } = makeSimulation()
+    connection.await(asLine({
       consume: {
         topic: 'the_topic',
         group: 'group123',
@@ -80,9 +76,8 @@ export default (tape) => {
   tape('sends consume (largest) when playing', (t) => {
     t.plan(1)
     t.timeoutAfter(100)
-    let sim = makeSimulation()
-    let api = constructor(sim.net, 'localhost:1234')
-    sim.connection.await(asLine({
+    let { api, connection } = makeSimulation()
+    connection.await(asLine({
       consume: {
         topic: 'the_topic',
         offsetReset: 'largest'
@@ -94,12 +89,11 @@ export default (tape) => {
   tape('sends next once consume-started', (t) => {
     t.plan(1)
     t.timeoutAfter(100)
-    let sim = makeSimulation()
-    let api = constructor(sim.net, 'localhost:1234')
-    sim.connection.push(asLine({
+    let { api, connection } = makeSimulation()
+    connection.push(asLine({
       consumeStarted: true
     }))
-    sim.connection.await(asLine({
+    connection.await(asLine({
       "next": true
     }), t.pass)
   })
@@ -107,19 +101,18 @@ export default (tape) => {
   tape('gets message', (t) => {
     t.plan(2)
     t.timeoutAfter(100)
-    let sim = makeSimulation()
-    let api = constructor(sim.net, 'localhost:1234')
+    let { api, connection } = makeSimulation()
     api.replay('the_topic', (event, ack) => {
       t.deepEqual(event,{
         hello: 123
       })
     })
-    sim.connection.push(asLine({
+    connection.push(asLine({
       message: {
         hello: 123
       }
     }))
-    sim.connection.awaitNot(asLine({
+    connection.awaitNot(asLine({
       commit: true
     }), () => t.pass('did not send commit without ack'))
   })
@@ -127,17 +120,16 @@ export default (tape) => {
   tape('sends commit on ack', (t) => {
     t.plan(1)
     t.timeoutAfter(100)
-    let sim = makeSimulation()
-    let api = constructor(sim.net, 'localhost:1234')
+    let { api, connection } = makeSimulation()
     api.replay('the_topic', (event, ack) => {
       ack()
     })
-    sim.connection.push(asLine({
+    connection.push(asLine({
       message: {
         hello: 123
       }
     }))
-    sim.connection.await(asLine({
+    connection.await(asLine({
       commit: true
     }), t.pass)
   })
@@ -145,12 +137,12 @@ export default (tape) => {
   tape('sends next on commit-ack', (t) => {
     t.plan(1)
     t.timeoutAfter(100)
-    let sim = makeSimulation()
-    let api = constructor(sim.net, 'localhost:1234')
-    sim.connection.push(asLine({
+    let { connection } = makeSimulation()
+
+    connection.push(asLine({
       commitOK: true
     }))
-    sim.connection.await(asLine({
+    connection.await(asLine({
       "next": true
     }), t.pass)
   })
@@ -162,6 +154,7 @@ export default (tape) => {
         connect: () => simulation.connection
       }
     }
+    simulation.api = constructor(simulation.net, 'localhost:1234')
     return simulation;
   }
 }
