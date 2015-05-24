@@ -10,19 +10,20 @@ export default (tape) => {
   tape('when event written to api', (t) => {
     t.plan(1);
     t.timeoutAfter(100)
-    let { api, connection } = simulation()
+    let { api, connection } = simulation({
+      connectionURI: 'my-host:666/mysuperapp'
+    })
     api.write({
-      topic: 'mytopic',
       body: {
         hello: 123
       }
     })
     connection.await(asLine({
       "event": {
-        "topic": "mytopic",
         "body": {
           "hello": 123
-        }
+        },
+        "topic": "mysuperapp"
       }
     }), () => t.pass('it sends event message data on socket'))
   })
@@ -48,6 +49,21 @@ export default (tape) => {
     }), () => t.pass('is sends uri part as topic'))
   })
 
+  tape('when we connect using a given uri, and call replay w/o topic', (t) => {
+    t.plan(1);
+    t.timeoutAfter(100)
+    let { api, connection } = simulation({
+      connectionURI: 'my-host:666/my-fine-app'
+    })
+    api.replay(() => {})
+    connection.await(asLine({
+      consume: {
+        topic: 'my-fine-app',
+        offsetReset: 'smallest'
+      }
+    }), () => t.pass('it sends uri part as topic in consume message data'))
+  })
+
   tape('when error message data received on socket', (t) => {
     t.plan(3)
     t.timeoutAfter(100)
@@ -71,41 +87,47 @@ export default (tape) => {
   tape('when replay called on api', (t) => {
     t.plan(1)
     t.timeoutAfter(100)
-    let { api, connection } = simulation()
+    let { api, connection } = simulation({
+      connectionURI: 'my-host:666/ninja-app'
+    })
     connection.await(asLine({
       consume: {
-        topic: 'the_topic',
+        topic: 'ninja-app',
         offsetReset: 'smallest'
       }
     }), () => t.pass('it sends consume message data on socket'))
-    api.replay('the_topic', () => {})
+    api.replay(() => {})
   })
 
   tape('when replay called with group on api', (t) => {
     t.plan(1)
     t.timeoutAfter(100)
-    let { api, connection } = simulation()
+    let { api, connection } = simulation({
+      connectionURI: 'my-host:666/fancyApp'
+    })
     connection.await(asLine({
       consume: {
-        topic: 'the_topic',
+        topic: 'fancyApp',
         group: 'group123',
         offsetReset: 'smallest'
       }
     }), () => t.pass('it forwards group in consume message data'))
-    api.replay('the_topic', 'group123', () => {})
+    api.replay('group123', () => {})
   })
 
   tape('when play called on the api', (t) => {
     t.plan(1)
     t.timeoutAfter(100)
-    let { api, connection } = simulation()
+    let { api, connection } = simulation({
+      connectionURI: 'my-host:666/mystore'
+    })
     connection.await(asLine({
       consume: {
-        topic: 'the_topic',
+        topic: 'mystore',
         offsetReset: 'largest'
       }
     }), () => t.pass('it sends consume message data on socket with offsetReset "largest"'))
-    api.play('the_topic', (event, ack) => {})
+    api.play((event, ack) => {})
   })
 
   tape('when consumeStarted message data received on socket', (t) => {

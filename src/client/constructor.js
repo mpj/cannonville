@@ -51,12 +51,12 @@ let constructor = (net, uri) => {
 
     })
 
-  let consume = (offsetReset, topic, group, callback) => {
+  let consume = (offsetReset, group, callback) => {
     if (!callback) callback = group
     currentConsumerCallback = callback
     connection.write(JSON.stringify({
       consume: {
-        topic,
+        topic: book,
         group,
         offsetReset
       }

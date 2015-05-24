@@ -35,7 +35,7 @@ For example:
 
 ```javascript
 import cannonville from 'cannonville'
-let connection = cannonville('localhost:1234')
+let connection = cannonville('my-cannonville-server:4444/greeting-app')
 connection.write({ body: { hello: 'world1' } })
 connection.write({ body: { hello: 'world2' } })
 setTimeout(function() {
