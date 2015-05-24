@@ -19,10 +19,10 @@ Let’s learn about `write` first, which appends an event to the log:
 
 ```javascript
 import cannonville from 'cannonville'
-let connection = cannonville(‘localhost:1234’);
+let connection = cannonville('my-cannonville-server:4444/greeting-app');
 connection.write({
   body: {
-    hello: ‘world’
+    hello: 'world'
   }
 })
 ```
