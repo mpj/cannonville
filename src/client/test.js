@@ -7,7 +7,7 @@ import asLine from '../stream-utils/as-line'
 
 export default (tape) => {
 
-  tape('opens connection an writes to it', (t) => {
+  tape('when event written to api', (t) => {
     t.plan(1);
     t.timeoutAfter(100)
     let { api, connection } = simulation()
@@ -24,19 +24,20 @@ export default (tape) => {
           "hello": 123
         }
       }
-    }), t.pass)
+    }), () => t.pass('it sends event message data on socket'))
   })
 
-  tape('coerces errors to node errors', (t) => {
-    t.plan(2)
+  tape('when error message data received on socket', (t) => {
+    t.plan(3)
     t.timeoutAfter(100)
     let { api, connection } = simulation()
     _(api)
       .errors((e) => {
-        t.equal(e.code, 'some-error')
-        t.equal(e.message, 'Everything broke!')
+        t.equal(Object.getPrototypeOf(e).name, 'Error', 'it coerces data to error object')
+        t.equal(e.code, 'some-error', 'it transfers code property from data')
+        t.equal(e.message, 'Everything broke!', 'it transfers message property from data')
       })
-      .each(logger('hmm'))
+      .each(()=>{})
 
     connection.push(asLine({
       error: {
@@ -46,7 +47,7 @@ export default (tape) => {
     }))
   })
 
-  tape('sends consume (smallest) when replaying', (t) => {
+  tape('when replay called on api', (t) => {
     t.plan(1)
     t.timeoutAfter(100)
     let { api, connection } = simulation()
@@ -55,11 +56,11 @@ export default (tape) => {
         topic: 'the_topic',
         offsetReset: 'smallest'
       }
-    }), t.pass)
+    }), () => t.pass('it sends consume message data on socket'))
     api.replay('the_topic', () => {})
   })
 
-  tape('sends group when replaying', (t) => {
+  tape('when replay called with group on api', (t) => {
     t.plan(1)
     t.timeoutAfter(100)
     let { api, connection } = simulation()
@@ -69,11 +70,11 @@ export default (tape) => {
         group: 'group123',
         offsetReset: 'smallest'
       }
-    }), t.pass)
+    }), () => t.pass('it forwards group in consume message data'))
     api.replay('the_topic', 'group123', () => {})
   })
 
-  tape('sends consume (largest) when playing', (t) => {
+  tape('when play called on the api', (t) => {
     t.plan(1)
     t.timeoutAfter(100)
     let { api, connection } = simulation()
@@ -82,11 +83,11 @@ export default (tape) => {
         topic: 'the_topic',
         offsetReset: 'largest'
       }
-    }), t.pass)
+    }), () => t.pass('it sends consume message data on socket with offsetReset "largest"'))
     api.play('the_topic', (event, ack) => {})
   })
 
-  tape('sends next once consume-started', (t) => {
+  tape('when consumeStarted message data received on socket', (t) => {
     t.plan(1)
     t.timeoutAfter(100)
     let { api, connection } = simulation()
@@ -95,17 +96,18 @@ export default (tape) => {
     }))
     connection.await(asLine({
       "next": true
-    }), t.pass)
+    }), () => t.pass('it sends next message data on socket'))
   })
 
-  tape('gets message', (t) => {
+  tape('when message message data received on socket and replay called', (t) => {
     t.plan(2)
     t.timeoutAfter(100)
     let { api, connection } = simulation()
     api.replay('the_topic', (event, ack) => {
-      t.deepEqual(event,{
+      t.deepEqual(event, {
         hello: 123
-      })
+      }, 'it coerces the message messsage data to a javascript object that ' +
+         'is passed as the first argument to the replay callback')
     })
     connection.push(asLine({
       message: {
@@ -114,10 +116,11 @@ export default (tape) => {
     }))
     connection.awaitNot(asLine({
       commit: true
-    }), () => t.pass('did not send commit without ack'))
+    }), () => t.pass('does NOT send commit message data on the server socket '+
+                     '(as replay did not call ack())'))
   })
 
-  tape('sends commit on ack', (t) => {
+  tape('when message message data received and ack is called in replay callback', (t) => {
     t.plan(1)
     t.timeoutAfter(100)
     let { api, connection } = simulation()
@@ -131,10 +134,10 @@ export default (tape) => {
     }))
     connection.await(asLine({
       commit: true
-    }), t.pass)
+    }), () => t.pass('it does send commit command to server'))
   })
 
-  tape('sends next on commit-ack', (t) => {
+  tape('when commitOK message data is received on the socket', (t) => {
     t.plan(1)
     t.timeoutAfter(100)
     let { connection } = simulation()
@@ -144,7 +147,7 @@ export default (tape) => {
     }))
     connection.await(asLine({
       "next": true
-    }), t.pass)
+    }), () => t.pass('it sends next to server'))
   })
 
   let simulation = () => {
