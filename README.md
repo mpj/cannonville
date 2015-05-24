@@ -110,13 +110,13 @@ world1
 world2
 Error: OH NO
 ```
-You do no have to pass a *player id* to replay (in the code example in the introduction, we do not) if you don’t care about resuming where you left off. Without a session name, `replay` will simply always resume from the beginning. session name is available on *replay* only. *play* sessions are not persistent.
+You do no have to pass a *player id* to replay (in the code example in the introduction, we do not) if you don’t care about resuming where you left off. Without a *player id*, `replay` will simply always resume from the beginning. player id available on *replay* only - they would not make much sense when using *play*.
 
 ## Stop
-As both `play` and `replay` keeps running until further notice, you will need a way to shut them down. Both play and replay return a function that, when called, disconnects from Cannonville and allows your app to garbage collect it. Doing this does *not* delete the session in Cannonville, so you can still resume it later.
+As both `play` and `replay` keeps running until further notice, you will need a way to shut them down. Both play and replay return a function that, when called, disconnects from Cannonville and allows your app to garbage collect it. Doing this does *not* delete the *player id* offset in Cannonville, so you can still resume it later.
 
 ```
-var stop = connection.replay('waitForSomeThingSession', function(event, ack) {
+var stop = connection.replay('waitForSomeThingPlayer', function(event, ack) {
   // Do stuff with the event
   ack()
 })
