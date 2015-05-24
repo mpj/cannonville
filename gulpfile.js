@@ -11,6 +11,16 @@ var gutil = require('gulp-util');
 var open = require('gulp-open');
 var clean = require('gulp-clean');
 var run = require('gulp-run');
+var watchify = require('watchify');
+var merge = require('mout/object/merge');
+
+// add custom browserify options here
+var customOpts = {
+  entries: 'src/test-runner.js',
+  debug: true // make sourcemaps work
+};
+var opts = merge({}, watchify.args, customOpts);
+var b = watchify(browserify(opts).transform(babelify));
 
 gulp.task('compile', ['clean'], function() {
   return gulp
@@ -28,11 +38,7 @@ gulp.task('clean', function() {
 })
 
 gulp.task('browser-test', ['clean'], function() {
-  browserify({
-    entries: 'src/test-runner.js',
-    debug: true // make sourcemaps work
-  })
-  .transform(babelify)
+  return b
   .bundle()
   .on('error', gutil.log.bind(gutil, 'Browserify Error'))
   .pipe(source('bundle.js'))
