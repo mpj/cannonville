@@ -14,13 +14,13 @@ let constructor = (net, guid, boilerBayPath, serverPort) => {
       .map((command) => {
         if (command.event) {
           return 'send ' +
-            command.event.topic + ' ' +
+            command.event.book + ' ' +
             (guid().replace(/-/g,'')) + ' ' +
             JSON.stringify(command.event.body) +
             '\n'
         } else if(command.consume) {
           return 'consume ' +
-            command.consume.topic + ' ' +
+            command.consume.book + ' ' +
             (command.consume.group || guid()) + ' ' +
             command.consume.offsetReset +
             '\n'
@@ -37,7 +37,7 @@ let constructor = (net, guid, boilerBayPath, serverPort) => {
         let body = buffer.toString()
         if (body.match(/msg/)) {
           return {
-            message: JSON.parse(body.match(/msg\s(.+)/)[1])
+            event: JSON.parse(body.match(/msg\s(.+)/)[1])
           }
         } else if (body.match(/consume\-started/)) {
           return {

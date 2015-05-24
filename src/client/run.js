@@ -14,7 +14,7 @@ setInterval(() =>
 
 let conn2 = client('localhost:1234/mytopicz')
 
-conn2.play('mytopicz', (x, ack) => {
+conn2.play((x, ack) => {
   console.log("got", x)
   ack()
 })

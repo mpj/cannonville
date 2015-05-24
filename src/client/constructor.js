@@ -19,7 +19,7 @@ let constructor = (net, uri) => {
   let read = _()
   let api = duplex(write, read)
   write
-    .doto((cmd) => cmd.topic = cmd.topic || book)
+    .doto((cmd) => cmd.book = book)
     .map((cmd) => JSON.stringify({
       event: cmd
     })+'\n')
@@ -35,13 +35,13 @@ let constructor = (net, uri) => {
     .each(function(resp) {
       if (resp.consumeStarted || resp.commitOK) {
         writeNext()
-      } else if(resp.message) {
+      } else if(resp.event) {
         let ack = () => {
           connection.write(JSON.stringify({
             commit: true
           })+'\n')
         }
-        currentConsumerCallback(resp.message, ack)
+        currentConsumerCallback(resp.event, ack)
       }
       else {
         var error = new Error(resp.error.message)
@@ -56,7 +56,7 @@ let constructor = (net, uri) => {
     currentConsumerCallback = callback
     connection.write(JSON.stringify({
       consume: {
-        topic: book,
+        book,
         group,
         offsetReset
       }

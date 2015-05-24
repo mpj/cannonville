@@ -20,7 +20,7 @@ export default (tape) => {
     t.ok(sim.net.connect.calledWith(1234, '192.168.0.1'))
     sim.clientSocket.push(asLine({
       event: {
-        topic: "myTopic",
+        book: "myTopic",
         body: {
           hello: 123
         }
@@ -52,7 +52,7 @@ export default (tape) => {
     sim.clientSocket.push(asLine({
       consume: {
         offsetReset: 'smallest',
-        topic: 'my_fine_topic'
+        book: 'my_fine_topic'
         // leaving group undefined
       },
     }))
@@ -69,7 +69,7 @@ export default (tape) => {
     sim.clientSocket.push(asLine({
       consume: {
         offsetReset: 'smallest',
-        topic: 'my_fine_topic',
+        book: 'my_fine_topic',
         group: 'grp1234bca'
       },
     }))
@@ -85,7 +85,7 @@ export default (tape) => {
     sim.clientSocket.push(asLine({
       consume: {
         offsetReset: 'largest',
-        topic: 'my_fine_topic'
+        book: 'my_fine_topic'
         // leaving group undefined
       },
     }))
@@ -132,7 +132,7 @@ export default (tape) => {
     sim.boilerBaySocket.push(asLine('ready'))
     sim.boilerBaySocket.push('msg ' + asLine({ hello: 123 }))
     sim.clientSocket.await(
-      "{\"message\":{\"hello\":123}}\n", t.pass)
+      "{\"event\":{\"hello\":123}}\n", t.pass)
     sim.clientSocket.awaitNot("undefined\n", t.pass)
   })
 

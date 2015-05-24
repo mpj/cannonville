@@ -23,7 +23,7 @@ export default (tape) => {
         "body": {
           "hello": 123
         },
-        "topic": "mysuperapp"
+        "book": "mysuperapp"
       }
     }), () => t.pass('it sends event message data on socket'))
   })
@@ -44,9 +44,9 @@ export default (tape) => {
         "body": {
           "hello": 123
         },
-        "topic": "my-fine-app"
+        "book": "my-fine-app"
       }
-    }), () => t.pass('is sends uri part as topic'))
+    }), () => t.pass('is sends uri part as book'))
   })
 
   tape('when error message data received on socket', (t) => {
@@ -77,7 +77,7 @@ export default (tape) => {
     })
     connection.await(asLine({
       consume: {
-        topic: 'ninja-app',
+        book: 'ninja-app',
         offsetReset: 'smallest'
       }
     }), () => t.pass('it sends consume message data on socket'))
@@ -92,7 +92,7 @@ export default (tape) => {
     })
     connection.await(asLine({
       consume: {
-        topic: 'fancyApp',
+        book: 'fancyApp',
         group: 'group123',
         offsetReset: 'smallest'
       }
@@ -108,7 +108,7 @@ export default (tape) => {
     })
     connection.await(asLine({
       consume: {
-        topic: 'mystore',
+        book: 'mystore',
         offsetReset: 'largest'
       }
     }), () => t.pass('it sends consume message data on socket with offsetReset "largest"'))
@@ -127,7 +127,7 @@ export default (tape) => {
     }), () => t.pass('it sends next message data on socket'))
   })
 
-  tape('when message message data received on socket and replay called', (t) => {
+  tape('when event message data received on socket and replay called', (t) => {
     t.plan(2)
     t.timeoutAfter(100)
     let { api, connection } = simulation()
@@ -138,7 +138,7 @@ export default (tape) => {
          'is passed as the first argument to the replay callback')
     })
     connection.push(asLine({
-      message: {
+      event: {
         hello: 123
       }
     }))
@@ -148,7 +148,7 @@ export default (tape) => {
                      '(as replay did not call ack())'))
   })
 
-  tape('when message message data received and ack is called in replay callback', (t) => {
+  tape('when event message data received and ack is called in replay callback', (t) => {
     t.plan(1)
     t.timeoutAfter(100)
     let { api, connection } = simulation()
@@ -156,7 +156,7 @@ export default (tape) => {
       ack()
     })
     connection.push(asLine({
-      message: {
+      event: {
         hello: 123
       }
     }))
