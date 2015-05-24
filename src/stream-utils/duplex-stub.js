@@ -90,7 +90,7 @@ DuplexStub.prototype.await = function(times, pattern, callback) {
       'Awaited this pattern '+times+' time(s):\n' +
       JSON.stringify(pattern, null, 2) + '\n\n' +
       'The following values were written to the stub:\n' +
-      JSON.stringify(this._receivedValues, null, 2)
+      this._receivedValues.map((x) => JSON.stringify(x, null, 2)).join('\n')
     )
   }, 100)
   this._awaits.push({
@@ -114,7 +114,8 @@ DuplexStub.prototype.awaitSequence = function(patternSequence, callback) {
       'Awaited this pattern sequence:\n' +
       JSON.stringify(patternSequence, null, 2) + '\n\n' +
       'The following values were written to the stub:\n' +
-      JSON.stringify(this._receivedValues, null, 2)
+      this._receivedValues.map((x) => JSON.stringify(x, null, 2)).join('\n')
+
     )
   }, 100)
   this._awaits.push({
