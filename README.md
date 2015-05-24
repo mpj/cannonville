@@ -104,13 +104,13 @@ world5
 ```
 Running the code a third time will not print anything at all.
 
-This is all because Cannonville keeps track what events have already been `ack()`knowledged during this `replay` session, and will resume on the next event after it. To achieve this, Cannonville needs to be able to tell different `replay` sessions apart. That is why you need to give your replay session a name - in the code above, the session name is "helloPrinter". If you changed the name to "helloPrinter2" in the script, and re-ran it, `replay` would once again resume from the beginning of the log, and you’d once again get this result:
+This is all because Cannonville keeps track what events have already been `ack()`knowledged by the replayer, and will resume on the next event after it. To achieve this, Cannonville needs to be able to tell different players apart. That is why you need to pass a *player id* - in the code above, the player id is "helloPrinter". If you changed the name to "helloPrinter2" in the script, and re-ran it, `replay` would once again resume from the beginning of the log, and you’d once again get this result:
 ```
 world1
 world2
 Error: OH NO
 ```
-You do no have to pass a session name to replay (in the code example in the introduction, we do not) if you don’t care about resuming where you left off. Without a session name, `replay` will simply always resume from the beginning. session name is available on *replay* only. *play* sessions are not persistent.
+You do no have to pass a *player id* to replay (in the code example in the introduction, we do not) if you don’t care about resuming where you left off. Without a session name, `replay` will simply always resume from the beginning. session name is available on *replay* only. *play* sessions are not persistent.
 
 ## Stop
 As both `play` and `replay` keeps running until further notice, you will need a way to shut them down. Both play and replay return a function that, when called, disconnects from Cannonville and allows your app to garbage collect it. Doing this does *not* delete the session in Cannonville, so you can still resume it later.
