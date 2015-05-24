@@ -57,7 +57,7 @@ world2
 world3
 ```
 
-Notice that the “world3” event is written *after* replay was called, but even so, it is still printed! This is because *replay* keeps running even after it has reached the last event in the log, and keeps listening for more - feeding any new events to the callback as they are written. If you had used *play* instead of replay, the program would only have printed the “world3” event - as mentioned before, replay starts from the beginning of the log, while play will only consume events that are written after play was started.
+Notice that the "world3" event is written *after* replay was called, but even so, it is still printed! This is because *replay* keeps running even after it has reached the last event in the log, and keeps listening for more - feeding any new events to the callback as they are written. If you had used *play* instead of replay, the program would only have printed the “world3” event - as mentioned before, replay starts from the beginning of the log, while play will only consume events that are written after play was started.
 
 That’s it! You now know the basics of using Cannonville!
 
@@ -65,9 +65,11 @@ That’s it! You now know the basics of using Cannonville!
 
 One thing that might have struck you in the above examples is that (re)play doesn’t seem to require some sort of offset parameter. You might be wondering ”Can I only replay from from the beginning of the log? What if I ever need to resume from the middle?”
 
-The answer is that Cannonville manages offset for you. The offset for a `replay` session is persisted inside Cannonville, so if the application code that is `replay`ing events stops for some reason (such as a crash) and restarted, the `replay` session will resume after the last event the callback passed to `play` or `replay` called `ack()` for.
+The answer is that Cannonville manages offset for you. The offset for a `play` or `replay` is persisted server-side, inside Cannonville, so if the application code that is `replay`ing events stops for some reason (such as a crash) and restarted,  `replay` will resume after the last event the callback passed to `play` or `replay` called `ack()` for.
 
-For example, let’s say that we’ve written a couple of events to Cannonville.
+For this to work, we need to pass a *player id* when we call replay.
+Let's have a look at how that work. For example, let’s say that we’ve written
+a couple of events to Cannonville:
 ```javascript
 import cannonville from 'cannonville'
 let connection = cannonville('localhost:1234')
