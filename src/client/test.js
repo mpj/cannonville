@@ -49,21 +49,6 @@ export default (tape) => {
     }), () => t.pass('is sends uri part as topic'))
   })
 
-  tape('when we connect using a given uri, and call replay w/o topic', (t) => {
-    t.plan(1);
-    t.timeoutAfter(100)
-    let { api, connection } = simulation({
-      connectionURI: 'my-host:666/my-fine-app'
-    })
-    api.replay(() => {})
-    connection.await(asLine({
-      consume: {
-        topic: 'my-fine-app',
-        offsetReset: 'smallest'
-      }
-    }), () => t.pass('it sends uri part as topic in consume message data'))
-  })
-
   tape('when error message data received on socket', (t) => {
     t.plan(3)
     t.timeoutAfter(100)
