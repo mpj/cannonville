@@ -10,7 +10,7 @@ export default (tape) => {
   tape('opens connection an writes to it', (t) => {
     t.plan(1);
     t.timeoutAfter(100)
-    let { api, connection } = makeSimulation()
+    let { api, connection } = simulation()
     api.write({
       topic: 'mytopic',
       body: {
@@ -30,7 +30,7 @@ export default (tape) => {
   tape('coerces errors to node errors', (t) => {
     t.plan(2)
     t.timeoutAfter(100)
-    let { api, connection } = makeSimulation()
+    let { api, connection } = simulation()
     _(api)
       .errors((e) => {
         t.equal(e.code, 'some-error')
@@ -49,7 +49,7 @@ export default (tape) => {
   tape('sends consume (smallest) when replaying', (t) => {
     t.plan(1)
     t.timeoutAfter(100)
-    let { api, connection } = makeSimulation()
+    let { api, connection } = simulation()
     connection.await(asLine({
       consume: {
         topic: 'the_topic',
@@ -62,7 +62,7 @@ export default (tape) => {
   tape('sends group when replaying', (t) => {
     t.plan(1)
     t.timeoutAfter(100)
-    let { api, connection } = makeSimulation()
+    let { api, connection } = simulation()
     connection.await(asLine({
       consume: {
         topic: 'the_topic',
@@ -76,7 +76,7 @@ export default (tape) => {
   tape('sends consume (largest) when playing', (t) => {
     t.plan(1)
     t.timeoutAfter(100)
-    let { api, connection } = makeSimulation()
+    let { api, connection } = simulation()
     connection.await(asLine({
       consume: {
         topic: 'the_topic',
@@ -89,7 +89,7 @@ export default (tape) => {
   tape('sends next once consume-started', (t) => {
     t.plan(1)
     t.timeoutAfter(100)
-    let { api, connection } = makeSimulation()
+    let { api, connection } = simulation()
     connection.push(asLine({
       consumeStarted: true
     }))
@@ -101,7 +101,7 @@ export default (tape) => {
   tape('gets message', (t) => {
     t.plan(2)
     t.timeoutAfter(100)
-    let { api, connection } = makeSimulation()
+    let { api, connection } = simulation()
     api.replay('the_topic', (event, ack) => {
       t.deepEqual(event,{
         hello: 123
@@ -120,7 +120,7 @@ export default (tape) => {
   tape('sends commit on ack', (t) => {
     t.plan(1)
     t.timeoutAfter(100)
-    let { api, connection } = makeSimulation()
+    let { api, connection } = simulation()
     api.replay('the_topic', (event, ack) => {
       ack()
     })
@@ -137,7 +137,7 @@ export default (tape) => {
   tape('sends next on commit-ack', (t) => {
     t.plan(1)
     t.timeoutAfter(100)
-    let { connection } = makeSimulation()
+    let { connection } = simulation()
 
     connection.push(asLine({
       commitOK: true
@@ -147,7 +147,7 @@ export default (tape) => {
     }), t.pass)
   })
 
-  let makeSimulation = () => {
+  let simulation = () => {
     let simulation = {
       connection: duplexStub(),
       net: {

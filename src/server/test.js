@@ -12,7 +12,7 @@ export default (tape) => {
   tape('connects to bb', { timeout: 1000}, (t) => {
     t.plan(3)
 
-    let sim = makeSimulation()
+    let sim = simulation()
 
     constructor(
       sim.net, sim.guid, '192.168.0.1:1234', 4567)
@@ -36,7 +36,7 @@ export default (tape) => {
 
   tape('converts bb errors to cv errors', { timeout: 1000 }, (t) => {
     t.plan(1)
-    let sim = makeSimulation()
+    let sim = simulation()
     constructor(sim.net, sim.guid, '192.168.0.1:1234', 4567)
     sim.boilerBaySocket.push(asLine('error some-code oh my god'))
     sim.clientSocket
@@ -47,7 +47,7 @@ export default (tape) => {
 
   tape('consume (smallest)', { timeout:1000 }, (t) => {
     t.plan(1)
-    let sim = makeSimulation()
+    let sim = simulation()
     constructor(sim.net, sim.guid, '192.168.0.1:1234', 4567)
     sim.clientSocket.push(asLine({
       consume: {
@@ -64,7 +64,7 @@ export default (tape) => {
 
   tape('consume (smallest, group specified)', { timeout:1000 }, (t) => {
     t.plan(1)
-    let sim = makeSimulation()
+    let sim = simulation()
     constructor(sim.net, sim.guid, '192.168.0.1:1234', 4567)
     sim.clientSocket.push(asLine({
       consume: {
@@ -80,7 +80,7 @@ export default (tape) => {
 
   tape('consume (largest)', { timeout:1000 }, (t) => {
     t.plan(1)
-    let sim = makeSimulation()
+    let sim = simulation()
     constructor(sim.net, sim.guid, '192.168.0.1:1234', 4567)
     sim.clientSocket.push(asLine({
       consume: {
@@ -97,7 +97,7 @@ export default (tape) => {
 
   tape('next', {timeout:1000}, (t) => {
     t.plan(1)
-    let sim = makeSimulation()
+    let sim = simulation()
     constructor(sim.net, sim.guid, '192.168.0.1:1234', 4567)
     sim.clientSocket.push(asLine({
       next: true
@@ -107,7 +107,7 @@ export default (tape) => {
 
   tape('handles two messages in one push', {timeout: 1000}, (t) => {
     t.plan(1)
-    let sim = makeSimulation()
+    let sim = simulation()
     constructor(sim.net, sim.guid, '192.168.0.1:1234', 4567)
     sim.clientSocket.push(
       asLine({ next: true }) + asLine({ next: true }))
@@ -116,7 +116,7 @@ export default (tape) => {
 
   tape('commit', {timeout:1000}, (t) => {
     t.plan(1)
-    let sim = makeSimulation()
+    let sim = simulation()
     constructor(sim.net, sim.guid, '192.168.0.1:1234', 4567)
     sim.clientSocket.push(asLine({
       commit: true
@@ -127,7 +127,7 @@ export default (tape) => {
 
   tape('msg', {timeout: 1000}, (t) => {
     t.plan(2)
-    let sim = makeSimulation()
+    let sim = simulation()
     constructor(sim.net, sim.guid, '192.168.0.1:1234', 4567)
     sim.boilerBaySocket.push(asLine('ready'))
     sim.boilerBaySocket.push('msg ' + asLine({ hello: 123 }))
@@ -138,7 +138,7 @@ export default (tape) => {
 
   tape('consume-started', (t) => {
     t.plan(1)
-    let sim = makeSimulation()
+    let sim = simulation()
     constructor(sim.net, sim.guid, '192.168.0.1:1234', 4567)
     sim.boilerBaySocket.push('consume-started\n')
     sim.clientSocket.await(
@@ -149,7 +149,7 @@ export default (tape) => {
 
   tape('commit-ok', {timeout:1000}, (t) => {
     t.plan(1)
-    let sim = makeSimulation()
+    let sim = simulation()
     constructor(sim.net, sim.guid, '192.168.0.1:1234', 4567)
     sim.boilerBaySocket.push('commit-ok\n')
     sim.clientSocket.await("{\"commitOK\":true}\n", t.pass)
@@ -157,7 +157,7 @@ export default (tape) => {
 
 
 
-  let makeSimulation = () => {
+  let simulation = () => {
 
     let simulation = {
       guidToGenerate: Math.floor(Math.random()*10000000).toString(),
