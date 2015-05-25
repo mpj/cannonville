@@ -9,15 +9,26 @@ import asLine from '../stream-utils/as-line'
 
 export default (tape) => {
 
-  tape('connects to bb', { timeout: 1000}, (t) => {
-    t.plan(3)
-
+  tape('when calling constructor with arguments', (t) => {
+    t.plan(2)
+    t.timeoutAfter(1000)
     let sim = simulation()
-
     constructor(
       sim.net, sim.guid, '192.168.0.1:1234', 4567)
-    t.ok(sim.server.listen.calledWith(4567))
-    t.ok(sim.net.connect.calledWith(1234, '192.168.0.1'))
+
+    t.ok(sim.server.listen.calledWith(4567),
+      'it listens for the client on the port we specified')
+    t.ok(sim.net.connect.calledWith(1234, '192.168.0.1'),
+      'it connects to boiler bay using the uri we specified ')
+  })
+
+  tape('when receiving event message data on client socket', (t) => {
+    t.plan(1)
+    t.timeoutAfter(1000)
+    let sim = simulation()
+    constructor(
+      sim.net, sim.guid, '192.168.0.1:1234', 4567)
+
     sim.clientSocket.push(asLine({
       event: {
         book: "myTopic",
@@ -26,44 +37,30 @@ export default (tape) => {
         }
       }
     }))
+
     sim
       .boilerBaySocket
       .await(1,
         'send myTopic ' + sim.guidToGenerate + ' {"hello":123}\n',
-        t.pass)
+        () => t.pass('it coerces that to a boiler bay send message'))
+
   })
 
-
-  tape('converts bb errors to cv errors', { timeout: 1000 }, (t) => {
+  tape('when receiving error message data on boiler bay socket', (t) => {
     t.plan(1)
+    t.timeoutAfter(1000)
     let sim = simulation()
     constructor(sim.net, sim.guid, '192.168.0.1:1234', 4567)
     sim.boilerBaySocket.push(asLine('error some-code oh my god'))
     sim.clientSocket
       .await(
         "{\"error\":{\"code\":\"some-code\",\"message\":\"oh my god\"}}\n",
-        t.pass)
+        () => t.pass('it coerces that into a Cannonville error'))
   })
 
-  tape('consume (smallest)', { timeout:1000 }, (t) => {
+  tape('when receiving consume message data on client socket', (t) => {
     t.plan(1)
-    let sim = simulation()
-    constructor(sim.net, sim.guid, '192.168.0.1:1234', 4567)
-    sim.clientSocket.push(asLine({
-      consume: {
-        offsetReset: 'smallest',
-        book: 'my_fine_topic'
-        // leaving group undefined
-      },
-    }))
-    sim.boilerBaySocket
-      .await("consume my_fine_topic " +
-        sim.guidToGenerate + " smallest\n", t.pass)
-
-  })
-
-  tape('consume (smallest, group specified)', { timeout:1000 }, (t) => {
-    t.plan(1)
+    t.timeoutAfter(1000)
     let sim = simulation()
     constructor(sim.net, sim.guid, '192.168.0.1:1234', 4567)
     sim.clientSocket.push(asLine({
@@ -75,11 +72,31 @@ export default (tape) => {
     }))
     sim.boilerBaySocket
       .await("consume my_fine_topic " +
-      'grp1234bca' + " smallest\n", t.pass)
+      'grp1234bca' + " smallest\n",
+      () => t.pass('it coerces that into a boiler bay consume message'))
   })
 
-  tape('consume (largest)', { timeout:1000 }, (t) => {
+  tape('when omitting group in consume message', (t) => {
     t.plan(1)
+    t.timeoutAfter(1000)
+    let sim = simulation()
+    constructor(sim.net, sim.guid, '192.168.0.1:1234', 4567)
+    sim.clientSocket.push(asLine({
+      consume: {
+        offsetReset: 'smallest',
+        book: 'my_fine_topic'
+        // leaving group undefined
+      },
+    }))
+    sim.boilerBaySocket
+      .await("consume my_fine_topic " +
+        sim.guidToGenerate + " smallest\n",
+        () => t.pass('it generates consumer group itself'))
+  })
+
+  tape('consume (largest)', (t) => {
+    t.plan(1)
+    t.timeoutAfter(1000)
     let sim = simulation()
     constructor(sim.net, sim.guid, '192.168.0.1:1234', 4567)
     sim.clientSocket.push(asLine({
@@ -92,70 +109,77 @@ export default (tape) => {
     sim.boilerBaySocket
       .await("consume my_fine_topic " +
         sim.guidToGenerate + " largest\n", t.pass)
-
   })
 
-  tape('next', {timeout:1000}, (t) => {
+  tape('when receiving next message data on client socket', (t) => {
     t.plan(1)
+    t.timeoutAfter(1000)
     let sim = simulation()
     constructor(sim.net, sim.guid, '192.168.0.1:1234', 4567)
     sim.clientSocket.push(asLine({
       next: true
     }))
-    sim.boilerBaySocket.await("next\n", t.pass)
+    sim.boilerBaySocket.await("next\n", () =>
+      t.pass('it coerces it into a boiler bay next message'))
   })
 
-  tape('handles two messages in one push', {timeout: 1000}, (t) => {
+  tape('when two lines are written simultaneously on the client socket', (t) => {
     t.plan(1)
+    t.timeoutAfter(1000)
     let sim = simulation()
     constructor(sim.net, sim.guid, '192.168.0.1:1234', 4567)
     sim.clientSocket.push(
       asLine({ next: true }) + asLine({ next: true }))
-    sim.boilerBaySocket.await(2, "next\n", t.pass)
+    sim.boilerBaySocket.await(2, "next\n",
+      () => t.pass('it handles them as two separate messages'))
   })
 
-  tape('commit', {timeout:1000}, (t) => {
+  tape('when commit message data is received on the client socket', (t) => {
     t.plan(1)
+    t.timeoutAfter(1000)
     let sim = simulation()
     constructor(sim.net, sim.guid, '192.168.0.1:1234', 4567)
     sim.clientSocket.push(asLine({
       commit: true
     }))
-    sim.boilerBaySocket.await("commit\n", t.pass)
-
+    sim.boilerBaySocket.await("commit\n",
+      () => t.pass('it coerces it to a boiler bay commit message'))
   })
 
-  tape('msg', {timeout: 1000}, (t) => {
+  tape('when msg message data is received on boiler bay socket', (t) => {
     t.plan(2)
+    t.timeoutAfter(1000)
     let sim = simulation()
     constructor(sim.net, sim.guid, '192.168.0.1:1234', 4567)
     sim.boilerBaySocket.push(asLine('ready'))
     sim.boilerBaySocket.push('msg ' + asLine({ hello: 123 }))
     sim.clientSocket.await(
       "{\"event\":{\"hello\":123}}\n", t.pass)
-    sim.clientSocket.awaitNot("undefined\n", t.pass)
+    sim.clientSocket.awaitNot("undefined\n",
+      () => t.pass('it writes that to the client socket as a event JSON message'))
   })
 
-  tape('consume-started', (t) => {
+  tape('when consume-started message data is received on boiler bay socket', (t) => {
     t.plan(1)
+    t.timeoutAfter(1000)
     let sim = simulation()
     constructor(sim.net, sim.guid, '192.168.0.1:1234', 4567)
     sim.boilerBaySocket.push('consume-started\n')
     sim.clientSocket.await(
       "{\"consumeStarted\":true}\n",
-      t.pass
+      () => t.pass('it writes that to the client socket as a consumeStarted JSON message')
     )
   })
 
-  tape('commit-ok', {timeout:1000}, (t) => {
+  tape('when commit-ok message data is receved on boiler bay socket', (t) => {
     t.plan(1)
+    t.timeoutAfter(1000)
     let sim = simulation()
     constructor(sim.net, sim.guid, '192.168.0.1:1234', 4567)
     sim.boilerBaySocket.push('commit-ok\n')
-    sim.clientSocket.await("{\"commitOK\":true}\n", t.pass)
+    sim.clientSocket.await("{\"commitOK\":true}\n",
+      () => t.pass('it writes that to the client socket as a commitOK JSON message'))
   })
-
-
 
   let simulation = () => {
 
