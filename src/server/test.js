@@ -67,7 +67,7 @@ export default (tape) => {
     sim.clientSocket.await(asLine({
       "error": {
         "code": "ECONNREFUSED",
-        "message": "oh no"
+        "message": "Boiler Bay emitted an error with message: oh no"
       }
     }), () => t.pass('it writes to client socket as error json message'))
   })
