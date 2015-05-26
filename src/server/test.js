@@ -58,6 +58,20 @@ export default (tape) => {
         () => t.pass('it coerces that into a Cannonville error'))
   })
 
+  tape('when boiler bay socket emit an error', (t) => {
+    t.plan(1)
+    t.timeoutAfter(1000)
+    let sim = simulation()
+    constructor(sim.net, sim.guid, '192.168.0.1:1234', 4567)
+    sim.boilerBaySocket.emit('error', {code: 'ECONNREFUSED', message: 'oh no' })
+    sim.clientSocket.await(asLine({
+      "error": {
+        "code": "ECONNREFUSED",
+        "message": "oh no"
+      }
+    }), () => t.pass('it writes to client socket as error json message'))
+  })
+
   tape('when receiving consume message data on client socket', (t) => {
     t.plan(1)
     t.timeoutAfter(1000)

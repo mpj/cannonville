@@ -58,6 +58,8 @@ let constructor = (net, guid, boilerBayPath, serverPort) => {
         }
       })
       .compact()
+      .errors(({code, message}, push) =>
+        push(null, { error: { code, message } }))
       .map((x) => JSON.stringify(x) + '\n')
       .pipe(cannonvilleConnection)
   })
