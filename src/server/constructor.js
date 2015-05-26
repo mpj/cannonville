@@ -6,8 +6,10 @@ let constructor = (net, guid, boilerBayPath, serverPort) => {
   let boilerBayPort = parseInt(boilerBayPath.split(':')[1], 10)
 
   let server = net.createServer((cannonvilleConnection) => {
+
     let boilerBayConnection = net.connect(boilerBayPort, boilerBayHost)
-    _(cannonvilleConnection)
+
+    let commandsForBoilerBay = _(cannonvilleConnection)
       .split()
       .compact()
       .map((x) => JSON.parse(x))
@@ -30,7 +32,10 @@ let constructor = (net, guid, boilerBayPath, serverPort) => {
           return 'commit\n'
         }
       })
-      .pipe(boilerBayConnection)
+
+    boilerBayConnection.on('connect', () =>
+      commandsForBoilerBay.pipe(boilerBayConnection))
+
     _(boilerBayConnection)
       .fork()
       .map((buffer) => {

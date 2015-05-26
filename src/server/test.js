@@ -38,9 +38,36 @@ export default (tape) => {
       }
     }))
 
+    sim.boilerBaySocket.emit('connect')
+
     sim
       .boilerBaySocket
       .await(1,
+        'send myTopic ' + sim.guidToGenerate + ' {"hello":123}\n',
+        () => t.pass('it coerces that to a boiler bay send message'))
+
+  })
+
+  tape('when receiving event message data on client socket if connect event NOT emitted by Boiler Bay socket', (t) => {
+    t.plan(1)
+    t.timeoutAfter(1000)
+    let sim = simulation()
+    constructor(
+      sim.net, sim.guid, '192.168.0.1:1234', 4567)
+
+    sim.clientSocket.push(asLine({
+      event: {
+        book: "myTopic",
+        body: {
+          hello: 123
+        }
+      }
+    }))
+
+
+    sim
+      .boilerBaySocket
+      .awaitNot(
         'send myTopic ' + sim.guidToGenerate + ' {"hello":123}\n',
         () => t.pass('it coerces that to a boiler bay send message'))
 
@@ -51,6 +78,7 @@ export default (tape) => {
     t.timeoutAfter(1000)
     let sim = simulation()
     constructor(sim.net, sim.guid, '192.168.0.1:1234', 4567)
+    sim.boilerBaySocket.emit('connect')
     sim.boilerBaySocket.push(asLine('error some-code oh my god'))
     sim.clientSocket
       .await(
@@ -77,6 +105,7 @@ export default (tape) => {
     t.timeoutAfter(1000)
     let sim = simulation()
     constructor(sim.net, sim.guid, '192.168.0.1:1234', 4567)
+    sim.boilerBaySocket.emit('connect')
     sim.clientSocket.push(asLine({
       consume: {
         offsetReset: 'smallest',
@@ -95,6 +124,7 @@ export default (tape) => {
     t.timeoutAfter(1000)
     let sim = simulation()
     constructor(sim.net, sim.guid, '192.168.0.1:1234', 4567)
+    sim.boilerBaySocket.emit('connect')
     sim.clientSocket.push(asLine({
       consume: {
         offsetReset: 'smallest',
@@ -113,6 +143,7 @@ export default (tape) => {
     t.timeoutAfter(1000)
     let sim = simulation()
     constructor(sim.net, sim.guid, '192.168.0.1:1234', 4567)
+    sim.boilerBaySocket.emit('connect')
     sim.clientSocket.push(asLine({
       consume: {
         offsetReset: 'largest',
@@ -130,6 +161,7 @@ export default (tape) => {
     t.timeoutAfter(1000)
     let sim = simulation()
     constructor(sim.net, sim.guid, '192.168.0.1:1234', 4567)
+    sim.boilerBaySocket.emit('connect')
     sim.clientSocket.push(asLine({
       next: true
     }))
@@ -142,6 +174,7 @@ export default (tape) => {
     t.timeoutAfter(1000)
     let sim = simulation()
     constructor(sim.net, sim.guid, '192.168.0.1:1234', 4567)
+    sim.boilerBaySocket.emit('connect')
     sim.clientSocket.push(
       asLine({ next: true }) + asLine({ next: true }))
     sim.boilerBaySocket.await(2, "next\n",
@@ -153,6 +186,7 @@ export default (tape) => {
     t.timeoutAfter(1000)
     let sim = simulation()
     constructor(sim.net, sim.guid, '192.168.0.1:1234', 4567)
+    sim.boilerBaySocket.emit('connect')
     sim.clientSocket.push(asLine({
       commit: true
     }))
@@ -165,6 +199,7 @@ export default (tape) => {
     t.timeoutAfter(1000)
     let sim = simulation()
     constructor(sim.net, sim.guid, '192.168.0.1:1234', 4567)
+    sim.boilerBaySocket.emit('connect')
     sim.boilerBaySocket.push(asLine('ready'))
     sim.boilerBaySocket.push('msg ' + asLine({ hello: 123 }))
     sim.clientSocket.await(
@@ -178,6 +213,7 @@ export default (tape) => {
     t.timeoutAfter(1000)
     let sim = simulation()
     constructor(sim.net, sim.guid, '192.168.0.1:1234', 4567)
+    sim.boilerBaySocket.emit('connect')
     sim.boilerBaySocket.push('consume-started\n')
     sim.clientSocket.await(
       "{\"consumeStarted\":true}\n",
@@ -190,6 +226,7 @@ export default (tape) => {
     t.timeoutAfter(1000)
     let sim = simulation()
     constructor(sim.net, sim.guid, '192.168.0.1:1234', 4567)
+    sim.boilerBaySocket.emit('connect')
     sim.boilerBaySocket.push('commit-ok\n')
     sim.clientSocket.await("{\"commitOK\":true}\n",
       () => t.pass('it writes that to the client socket as a commitOK JSON message'))
