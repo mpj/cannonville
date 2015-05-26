@@ -18,7 +18,29 @@ export default (tape) => {
         hello: 123
       }
     })
+    connection.emit('connect')
     connection.await(asLine({
+      "event": {
+        "body": {
+          "hello": 123
+        },
+        "book": "mysuperapp"
+      }
+    }), () => t.pass('it sends event message data on socket'))
+  })
+
+  tape('when event written to api but connect event NOT emitted', (t) => {
+    t.plan(1);
+    t.timeoutAfter(100)
+    let { api, connection } = simulation({
+      connectionURI: 'my-host:666/mysuperapp'
+    })
+    api.write({
+      body: {
+        hello: 123
+      }
+    })
+    connection.awaitNot(asLine({
       "event": {
         "body": {
           "hello": 123
@@ -39,6 +61,7 @@ export default (tape) => {
         hello: 123
       }
     })
+    connection.emit('connect')
     connection.await(asLine({
       "event": {
         "body": {
@@ -60,7 +83,7 @@ export default (tape) => {
         t.equal(e.message, 'Everything broke!', 'it transfers message property from data')
       })
       .each(()=>{})
-
+    connection.emit('connect')
     connection.push(asLine({
       error: {
         code: 'some-error',
@@ -75,6 +98,7 @@ export default (tape) => {
     let { api, connection } = simulation({
       connectionURI: 'my-host:666/ninja-app'
     })
+    connection.emit('connect')
     connection.await(asLine({
       consume: {
         book: 'ninja-app',
@@ -90,6 +114,7 @@ export default (tape) => {
     let { api, connection } = simulation({
       connectionURI: 'my-host:666/fancyApp'
     })
+    connection.emit('connect')
     connection.await(asLine({
       consume: {
         book: 'fancyApp',
@@ -106,6 +131,7 @@ export default (tape) => {
     let { api, connection } = simulation({
       connectionURI: 'my-host:666/mystore'
     })
+    connection.emit('connect')
     connection.await(asLine({
       consume: {
         book: 'mystore',
@@ -119,6 +145,7 @@ export default (tape) => {
     t.plan(1)
     t.timeoutAfter(100)
     let { api, connection } = simulation()
+    connection.emit('connect')
     connection.push(asLine({
       consumeStarted: true
     }))
@@ -137,6 +164,7 @@ export default (tape) => {
       }, 'it coerces the message messsage data to a javascript object that ' +
          'is passed as the first argument to the replay callback')
     })
+    connection.emit('connect')
     connection.push(asLine({
       event: {
         hello: 123
@@ -155,6 +183,7 @@ export default (tape) => {
     api.replay('the_topic', (event, ack) => {
       ack()
     })
+    connection.emit('connect')
     connection.push(asLine({
       event: {
         hello: 123
@@ -169,7 +198,7 @@ export default (tape) => {
     t.plan(1)
     t.timeoutAfter(100)
     let { connection } = simulation()
-
+    connection.emit('connect')
     connection.push(asLine({
       commitOK: true
     }))

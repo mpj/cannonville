@@ -11,19 +11,19 @@ let constructor = (net, uri) => {
   let book = parts[3]
 
   let connection = net.connect(port, host);
-  connection.on('connect', logger('Cannonville client connected'))
-
+  
   let currentConsumerCallback;
 
   let write = _()
   let read = _()
   let api = duplex(write, read)
-  write
+  let commandsForBoilerBay = write
     .doto((cmd) => cmd.book = book)
     .map((cmd) => JSON.stringify({
       event: cmd
     })+'\n')
-    .pipe(connection)
+
+  connection.on('connect', () => commandsForBoilerBay.pipe(connection))
 
   let writeNext = () => connection.write(JSON.stringify({
     next: true
